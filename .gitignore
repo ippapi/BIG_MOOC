@@ -1,0 +1,52 @@
+./database_node/binded_mount/
+# Ignore Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore virtual environment directories
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Ignore system files (macOS, Windows, etc.)
+.DS_Store
+Thumbs.db
+
+# Ignore log files
+*.log
+
+# Ignore database files
+*.sqlite3
+*.db
+
+# Ignore Google Drive or backup files
+*.bak
+*.swp
+
+# Ignore node_modules if working with Node.js
+node_modules/
+
+# Ignore environment variables or configuration files
+.env
+.env.*
+
+# Ignore compiled files
+*.o
+*.a
+*.so
+
+# Ignore any custom directory like logs, data, etc.
+logs/
+data/
+
+# Ignore all files in the /build directory
+/build/
+
+# Ignore all files in the /dist directory
+/dist/
