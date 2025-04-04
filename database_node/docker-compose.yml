@@ -1,42 +1,40 @@
+version: '3.8'
+
 services:
-  zookeeper:
-    image: zookeeper:3.6
-    ports:
-      - "2181:2181"
-
-  kafka:
-    image: wurstmeister/kafka:2.13-2.7.0
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
   cassandra:
-    image: cassandra:4.0
-    ports:
-      - "9042:9042"
-    volumes:
-      - ./init.cql:/docker-entrypoint-initdb.d/init.cql   # Mount init.cql to auto-run at startup
-    networks:
-      - backend
-
-  dataloader:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - cassandra  # Ensure Cassandra is running before loading data
-    volumes:
-      - ./data:/data  # Mount the data folder to the container
+    image: cassandra:4.1
+    container_name: cassandra
     environment:
-      - CASSANDRA_HOST=cassandra  # Use 'cassandra' as the hostname
-    entrypoint: ["python", "/dataloader.py"]  # Run dataloader.py when the container starts
+      - CASSANDRA_CLUSTER_NAME=Robert  # Set the cluster name
+      - CASSANDRA_DC=DC1
+      - CASSANDRA_RACK=Rack1
+    ports:
+      - "9042:9042"  # Expose port 9042 for Cassandra access
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+      - ./init.cql:/docker-entrypoint-initdb.d/init.cql
     networks:
-      - backend
+      - cassandra_net
+
+  app:
+    build:
+      context: .  # Build from the current directory
+      dockerfile: Dockerfile  # Specify your Dockerfile (optional if named Dockerfile)
+    image: ippapi/big_mooc_nodes:latest  # Tag the image as 'myapp:latest'
+    container_name: data_loader_app
+    depends_on:
+      - cassandra  # Ensure Cassandra starts before the app
+    environment:
+      - CASSANDRA_HOST=cassandra  # Use the service name as the host
+      - CASSANDRA_PORT=9042
+    volumes:
+      - .:/app
+    networks:
+      - cassandra_net
 
 networks:
-  backend:
+  cassandra_net:
     driver: bridge
+
+volumes:
+  cassandra_data:

@@ -1,26 +1,22 @@
--- Create Keyspace
-CREATE KEYSPACE IF NOT EXISTS MOOC
+CREATE KEYSPACE IF NOT EXISTS mooc
 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
-USE MOOC;
+USE mooc;
 
--- Table 1: Course Info
-CREATE TABLE IF NOT EXISTS COURSE (
+CREATE TABLE IF NOT EXISTS courses (
   course_id TEXT PRIMARY KEY,
   name TEXT,
   about TEXT
 );
 
--- Table 2: User Info
-CREATE TABLE IF NOT EXISTS USER (
+CREATE TABLE IF NOT EXISTS users (
   user_id TEXT PRIMARY KEY,
   name TEXT,
   gender TEXT,
-  year_of_birth INT
+  year_of_birth TEXT
 );
 
--- Table 3: User-Course Interactions
-CREATE TABLE IF NOT EXISTS USER_COURSE (
+CREATE TABLE IF NOT EXISTS user_course (
   user_id TEXT,
   course_id TEXT,
   enroll_time TIMESTAMP,

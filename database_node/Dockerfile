@@ -1,32 +1,22 @@
-# Start with a base image
-FROM openjdk:11-jre-slim
+# Use the python 3.9-slim image
+FROM python:3.9-slim
 
-# Install necessary dependencies (you can add others as needed)
+# Install required dependencies like curl and tar
 RUN apt-get update && apt-get install -y \
     curl \
-    python3 \
-    python3-pip \
-    git \
-    bash \
-    && rm -rf /var/lib/apt/lists/*
+    tar \
+    && apt-get clean
 
-# Install Kafka (example)
-RUN curl -s https://archive.apache.org/dist/kafka/2.7.0/kafka_2.13-2.7.0.tgz | tar -xvzf - -C /opt \
-    && ln -s /opt/kafka_2.13-2.7.0 /opt/kafka
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# Install Cassandra (example)
-RUN curl -sSL https://downloads.apache.org/cassandra/debian/39x/cassandra-4.0.0-bin.tar.gz | tar -xvzf - -C /opt \
-    && ln -s /opt/cassandra-4.0.0 /opt/cassandra
+# Copy your application code
+COPY . /app
 
-# Set environment variables for Kafka and Cassandra
-ENV KAFKA_HOME=/opt/kafka
-ENV CASSANDRA_HOME=/opt/cassandra
+# Set working directory
+WORKDIR /app
 
-# Copy your scripts (like data loader) into the image
-COPY ./dataloader /usr/local/bin/dataloader
+# Command to run the app
+CMD ["bash", "-c", "echo 'Waiting for Cassandra to start...' && until python3 /app/data_loader.py; do echo 'Keyspace not ready yet... waiting 5s'; sleep 5; done"]
 
-# Expose ports for your services (Kafka, Cassandra)
-EXPOSE 9092 2181 7000 9042
-
-# Start the services (Cassandra, Kafka, and the dataloader script)
-CMD ["bash", "-c", "service cassandra start && /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties & /usr/local/bin/dataloader"]
