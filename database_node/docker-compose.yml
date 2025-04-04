@@ -11,7 +11,7 @@ services:
     ports:
       - "9042:9042"  # Expose port 9042 for Cassandra access
     volumes:
-      - cassandra_data:/var/lib/cassandra
+      - ./binded_mount:/var/lib/cassandra
       - ./init.cql:/docker-entrypoint-initdb.d/init.cql
     networks:
       - cassandra_net
