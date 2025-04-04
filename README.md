@@ -14,14 +14,14 @@ This project is built to handle **real-time data ingestion**, **ML model trainin
 		 - kafka_consumer.py (Listen to Kafka, write to Cassandra)
 	 - 📁 database_node (Cassandra setup = Docker + init scripts)
 		 - 📁 data (table's data in csv format)
+		 - 📁 binded_mount (binded mount data from cassandra db)
 			 - user.csv (user table)
 			 - course.csv (course table)
 			 - user_course.csv (user and course interaction with timestamp)
-		 - init.cql
-		 - data_loader.py
+		 - init.cql (Create init tables for keyspace)
+		 - data_loader.py (Load data from data directory to db)
 		 - requirements.txt (Python dependencies)
-		 - docker-compose.yml
-		 - Dockerfile
+		 - Dockerfile (Setting up data loader app)
 	 -  📁 recommend_node
 	 - 📁 kafka
 	 - 📁 notebooks
