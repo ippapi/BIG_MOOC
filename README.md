@@ -6,6 +6,9 @@ This project is built to handle **real-time data ingestion**, **ML model trainin
  -  **ML Node**: The `recommend_node` folder contains the logic for training the recommendation model, as well as serving predictions for real-time recommendation requests.
  -  **App Node**: The `app` folder contains APIs that interact with **Kafka**, **Cassandra**, and the **recommendation system**. It listens to Kafka topics, writes data to Cassandra, and exposes the ML predictions as a service.
 ---
+## **Project resource**
+- Database Node images: ippapi/database_node
+- Notebooks + database's data: https://drive.google.com/drive/u/2/folders/1naMgCV6hGWTB25WFfiNL0xF-kCNGqjwx
 ## **Project file structure**
 
  - BIG_MOOC
