@@ -56,7 +56,6 @@ def load_users():
 
     with open('./data/user.csv') as f:
         reader = csv.DictReader(f)
-        next(reader)
         for row in reader:
             batch.add("""
                 INSERT INTO users (user_id, name, gender, year_of_birth)
