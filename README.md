@@ -1,3 +1,4 @@
+
 # BIG_MOOC
 ## **Project Overview**
 This project is built to handle **real-time data ingestion**, **ML model training**, and **recommendation** serving with a robust, scalable architecture. Here’s a breakdown of the system components:
@@ -7,8 +8,9 @@ This project is built to handle **real-time data ingestion**, **ML model trainin
  -  **App Node**: The `app` folder contains APIs that interact with **Kafka**, **Cassandra**, and the **recommendation system**. It listens to Kafka topics, writes data to Cassandra, and exposes the ML predictions as a service.
 ---
 ## **Project resource**
-- Database Node images: ippapi/database_node
-- Notebooks + database's data: https://drive.google.com/drive/u/2/folders/1naMgCV6hGWTB25WFfiNL0xF-kCNGqjwx
+- **Database Node images**: ippapi/database_node
+- **Notebooks + database's data**: https://drive.google.com/drive/u/2/folders/1naMgCV6hGWTB25WFfiNL0xF-kCNGqjwx
+---
 ## **Project file structure**
 
  - BIG_MOOC
@@ -16,23 +18,19 @@ This project is built to handle **real-time data ingestion**, **ML model trainin
 		 - main.py (API entrypoint)
 		 - kafka_consumer.py (Listen to Kafka, write to Cassandra)
 	 - 📁 database_node (Cassandra setup = Docker + init scripts)
+		 - binded_mount.zip (ziped database's data)
 		 - 📁 data (table's data in csv format)
-		 - 📁 binded_mount (binded mount data from cassandra db)
 			 - user.csv (user table)
 			 - course.csv (course table)
 			 - user_course.csv (user and course interaction with timestamp)
 		 - init.cql (Create init tables for keyspace)
 		 - data_loader.py (Load data from data directory to db)
-		 - requirements.txt (Python dependencies)
+		 - Docker-compose.yml (Setting up cassandra + data loader app)
 		 - Dockerfile (Setting up data loader app)
+		 - requirements.txt (Data loader app dependencies)
 	 -  📁 recommend_node
 	 - 📁 kafka
 	 - 📁 notebooks
 	 - 📁 utils
-	 - Dockerfile
 	 - README.md: It's me :))
-
-  
-
 ---
-
