@@ -1,4 +1,5 @@
-./database_node/binded_mount/
+database_node/binded_mount/
+database_node/secret/
 # Ignore Python bytecode files
 __pycache__/
 *.py[cod]
