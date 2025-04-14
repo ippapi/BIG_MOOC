@@ -51,3 +51,5 @@ data/
 
 # Ignore all files in the /dist directory
 /dist/
+database_initiator/secret/MOOCASSANDRA-token.json
+database_initiator/secret/secure-connect-moocassandra.zip
