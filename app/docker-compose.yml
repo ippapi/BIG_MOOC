@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes # not recommended for production
+    networks:
+      - kafka-net
+    healthcheck:
+        test: "nc -z localhost 2181"
+        interval: 30s
+        timeout: 5s
+        retries: 5
+        start_period: 10s
+    expose: 
+      - 2181        
+  kafka:
+    image: bitnami/kafka:3.0.2
+    ports:
+      - '9092:9092'
+      - '29092:29092'
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181      
+      - KAFKA_BROKER_ID=1
+      - ALLOW_PLAINTEXT_LISTENER=yes # not recommended for production
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: "kafka-topics.sh --bootstrap-server localhost:9092 --list"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - kafka-net
+    expose: 
+      - 9092      
+  producer:
+    build: ./producer
+    ports:
+      - '8000:8000'
+    depends_on: 
+      kafka:
+        condition: service_healthy
+    networks:
+      - kafka-net
+
+  consumer:
+    build: ./consumer    
+    networks:
+      - kafka-net
+
+networks:
+  kafka-net:
