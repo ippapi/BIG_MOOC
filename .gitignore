@@ -1,3 +1,4 @@
+
 database_node/binded_mount/
 database_node/secret/
 # Ignore Python bytecode files
@@ -53,3 +54,6 @@ data/
 /dist/
 database_initiator/secret/MOOCASSANDRA-token.json
 database_initiator/secret/secure-connect-moocassandra.zip
+app/consumer/service_account.json
+app/consumer/bigmooc-612438329c84.json
+app/ngrok.yml
