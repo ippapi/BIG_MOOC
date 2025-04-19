@@ -45,7 +45,6 @@ node_modules/
 
 # Ignore any custom directory like logs, data, etc.
 logs/
-data/
 
 # Ignore all files in the /build directory
 /build/
