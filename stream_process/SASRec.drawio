@@ -444,6 +444,36 @@
         <mxCell id="ADp_H2QigFvuDZXJTlt6-22" value="&lt;div&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;&lt;b&gt;Contextualized&amp;nbsp;&lt;/b&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;&lt;b&gt;representation&lt;/b&gt;&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="1691" y="306" width="136" height="50" as="geometry" />
         </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-1" value="&lt;div align=&quot;left&quot;&gt;n: Number of entities&lt;/div&gt;&lt;div align=&quot;left&quot;&gt;d: Number of dims (hidden units)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1037" y="233" width="146" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-2" value="(n,d)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="496" y="393" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-3" value="(1,d)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="379" y="318" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-4" value="(n,d)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="653" y="301" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-5" value="(d,n)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="653" y="361.5" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-6" value="(n,n)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="765" y="338" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-7" value="(n,n)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="899" y="335.5" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-8" value="(n,d)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="933.56" y="449" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-9" value="(n,d)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1016" y="393" width="43" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="_snh1DIt5F8v06N409Mb-10" value="(n,d)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1752" y="395" width="43" height="26" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
