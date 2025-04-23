@@ -37,11 +37,13 @@ def main():
     [train, validation, test, num_users, num_courses] = dataset
     num_batch = (len(train) - 1) // args.batch_size + 1
 
+    print(len(train))
+
     f = open("/content/drive/MyDrive/BIG_MOOC/log.txt", 'w')
     f.write('epoch (val_ndcg, val_hit, val_recall) (test_ndcg, test_hit, test_recall)\n')
 
     sampler = Sampler(train, num_users, num_courses, batch_size=args.batch_size, sequence_size=args.sequence_size)
-    model = SASREC(num_users, num_courses, args.device, hidden_units = 64, maxlen = 50, dropout_rate = 0.1, num_blocks = 2).to(args.device)
+    model = SASREC(num_users, num_courses, args.device, embedding_dims = args.embedding_dims, sequence_size = args.sequence_size, dropout_rate = args.dropout_rate, num_blocks = args.num_blocks).to(args.device)
 
     for _, param in model.named_parameters():
         try:
@@ -98,7 +100,7 @@ def main():
                 pbar.set_postfix({"loss": f"{loss.item():.4f}"})
                 pbar.update(1)
 
-        if epoch % 50 == 0:
+        if epoch % 25 == 0:
             model.eval()
             t1 = time.time() - t0
             total_time += t1
@@ -119,7 +121,7 @@ def main():
                 best_test_hr = max(test_result["Hit@k"], best_test_hr)
                 best_test_recall = max(test_result["Recall@k"], best_test_recall)
                 folder = train_dir
-                fname = 'SASRec.epoch={}.learning_rate={}.layer={}.head={}.hidden={}.maxlen={}.pth'
+                fname = 'SASRec.epoch={}.learning_rate={}.layer={}.head={}.embedding_dims={}.sequence_size={}.pth'
                 fname = fname.format(epoch, args.learning_rate, args.num_blocks, args.num_heads, args.embedding_dims, args.sequence_size)
                 torch.save(model.state_dict(), os.path.join(folder, fname))
 
@@ -128,14 +130,7 @@ def main():
             t0 = time.time()
             model.train()
 
-        if epoch == args.num_epochs:
-            folder = args.dataset + '_' + train_dir
-            fname = 'SASRec.epoch={}.learning_rate={}.layer={}.head={}.hidden={}.maxlen={}.pth'
-            fname = fname.format(args.num_epochs, args.learning_rate, args.num_blocks, args.num_heads, args.embedding_dims, args.sequence_size)
-            torch.save(model.state_dict(), os.path.join(folder, fname))
-
     f.close()
-    sampler.close()
     print("Done")
 
 

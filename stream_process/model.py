@@ -3,10 +3,10 @@ import torch.nn as nn
 import numpy as np
 
 class point_wise_feed_forward_net(nn.Module):
-    def __init__(self, hidden_units, dropout_rate):
+    def __init__(self, embedding_dims, dropout_rate):
         super().__init__()
-        self.conv1 = nn.Conv1d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=1)
-        self.conv2 = nn.Conv1d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=1)
+        self.conv1 = nn.Conv1d(in_channels=embedding_dims, out_channels=embedding_dims, kernel_size=1)
+        self.conv2 = nn.Conv1d(in_channels=embedding_dims, out_channels=embedding_dims, kernel_size=1)
 
         self.dropout1 = nn.Dropout(dropout_rate)
         self.dropout2 = nn.Dropout(dropout_rate)
@@ -20,14 +20,14 @@ class point_wise_feed_forward_net(nn.Module):
         return outputs
 
 class SASREC(nn.Module):
-    def __init__(self, num_users, num_courses, device, hidden_units = 64, maxlen = 50, dropout_rate = 0.1, num_blocks = 2):
+    def __init__(self, num_users, num_courses, device, embedding_dims = 64, sequence_size = 50, dropout_rate = 0.1, num_blocks = 2):
         super().__init__()
         self.num_users = num_users
         self.num_courses = num_courses
         self.device = device
 
-        self.course_emb = torch.nn.Embedding(self.num_courses+1, hidden_units, padding_idx=0)
-        self.position_emb = torch.nn.Embedding(maxlen+1, hidden_units, padding_idx=0)
+        self.course_emb = torch.nn.Embedding(self.num_courses+1, embedding_dims, padding_idx=0)
+        self.position_emb = torch.nn.Embedding(sequence_size+1, embedding_dims, padding_idx=0)
 
         self.dropout = torch.nn.Dropout(dropout_rate)
 
@@ -37,19 +37,19 @@ class SASREC(nn.Module):
         self.forward_layernorms = torch.nn.ModuleList()
         self.forward_layers = torch.nn.ModuleList()
 
-        self.last_layernorm = torch.nn.LayerNorm(hidden_units, eps=1e-8)
+        self.last_layernorm = torch.nn.LayerNorm(embedding_dims, eps=1e-8)
 
         for _ in range(num_blocks):
-            new_attention_layernorm = torch.nn.LayerNorm(hidden_units, eps=1e-8)
+            new_attention_layernorm = torch.nn.LayerNorm(embedding_dims, eps=1e-8)
             self.attention_layernorms.append(new_attention_layernorm)
 
-            new_attention_layer = torch.nn.MultiheadAttention(hidden_units, num_heads=4)
+            new_attention_layer = torch.nn.MultiheadAttention(embedding_dims, num_heads=4)
             self.attention_layers.append(new_attention_layer)
 
-            new_forward_layernorm = torch.nn.LayerNorm(hidden_units, eps=1e-8)
+            new_forward_layernorm = torch.nn.LayerNorm(embedding_dims, eps=1e-8)
             self.forward_layernorms.append(new_forward_layernorm)
 
-            new_forward_layer = point_wise_feed_forward_net(hidden_units, dropout_rate)
+            new_forward_layer = point_wise_feed_forward_net(embedding_dims, dropout_rate)
             self.forward_layers.append(new_forward_layer)
 
     def contextualized_respresent(self, user_interacts):
