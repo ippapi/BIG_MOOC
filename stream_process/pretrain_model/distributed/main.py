@@ -34,7 +34,7 @@ def main():
 
     args = parser.parse_args()
 
-    dist.init_process_group(backend='nccl', init_method='env://', world_size=2, rank=args.local_rank)
+    dist.init_process_group(backend='gloo', init_method='env://')
     device = torch.device('cpu')
 
     dataset = data_retrieval()
