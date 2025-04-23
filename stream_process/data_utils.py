@@ -3,47 +3,44 @@ import pandas as pd
 import ast
 from collections import defaultdict
 
-def data_retrieval():
-    train_path = '/content/drive/MyDrive/BIG_MOOC/dataset/train_df.csv'
-    val_path = '/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv'
-    test_path = '/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv'
+import pandas as pd
+import ast
+from collections import defaultdict
 
+def data_retrieval():
+    num_users = 0
+    num_courses = 0
     train = defaultdict(list)
     validation = defaultdict(list)
     test = defaultdict(list)
 
-    num_users = 0
-    num_courses = 0
-
-    def load_user_courses(path, storage, course_column='course'):
+    def load_train(path, storage):
         nonlocal num_users, num_courses
         df = pd.read_csv(path)
         for _, row in df.iterrows():
             user = int(row['user'])
-            courses = ast.literal_eval(row[course_column])
+            courses = ast.literal_eval(row['feature'])
             storage[user].extend(courses)
             num_users = max(num_users, user)
             if courses:
                 num_courses = max(num_courses, max(courses))
 
-    def load_test(path, storage):
+    def load_single_label_file(path, label_column, storage):
         nonlocal num_users, num_courses
         df = pd.read_csv(path)
         for _, row in df.iterrows():
             user = int(row['user'])
-            course = int(row['course'])
+            course = int(row[label_column])
             storage[user].append(course)
             num_users = max(num_users, user)
             num_courses = max(num_courses, course)
 
-    load_user_courses(train_path, train)
-    load_user_courses(val_path, validation)
-    load_test(test_path, test)
-
-    print(f"✔️ Loaded: {len(train)} train users, {len(validation)} val users, {len(test)} test users")
-    print(f"✔️ Max user ID: {num_users}, Max course ID: {num_courses}")
+    load_train('/content/drive/MyDrive/BIG_MOOC/dataset/train_df.csv', train)
+    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', validation)
+    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', test)
 
     return [train, validation, test, num_users + 1, num_courses + 1]
+
 
 class Sampler:
     def __init__(self, users_interacts, num_users=99970, num_courses=2827, batch_size=64, sequence_size=10):
