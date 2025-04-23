@@ -34,7 +34,6 @@ def main():
 
     args = parser.parse_args()
 
-    # === DDP SETUP ===
     dist.init_process_group(backend='nccl')
     torch.cuda.set_device(args.local_rank)
     device = torch.device('cuda', args.local_rank)
@@ -42,8 +41,7 @@ def main():
     dataset = data_retrieval()
     [train, validation, test, num_users, num_courses] = dataset
 
-    sampler = Sampler(train, num_users, num_courses, batch_size=args.batch_size, sequence_size=args.sequence_size)
-
+    sampler = DistributedSampler(train, num_users, num_courses, batch_size = args.batch_size, sequence_size = args.sequence_size, world_size = 2, rank = args.local_rank)
     model = SASREC(num_users, num_courses, args.device, embedding_dims=args.embedding_dims,
                    sequence_size=args.sequence_size, dropout_rate=args.dropout_rate,
                    num_blocks=args.num_blocks).to(device)
@@ -85,6 +83,7 @@ def main():
     t0 = time.time()
 
     for epoch in range(epoch_start_idx, args.num_epochs + 1):
+        sampler.set_epoch(epoch)
         if args.inference_only: break
 
         model.train()
@@ -115,23 +114,10 @@ def main():
                 pbar.set_postfix({"loss": f"{loss.item():.4f}"})
                 pbar.update(1)
 
-        if epoch % 25 == 0 and dist.get_rank() == 0:
-            model.eval()
-            t1 = time.time() - t0
-            total_time += t1
-            print("Evaluating...")
-            test_result = evaluate(model.module, dataset, sequence_size=args.sequence_size, k=10)
-            val_result = evaluate_validation(model.module, dataset, sequence_size=args.sequence_size, k=10)
-
-            print(f"epoch: {epoch}, time: {total_time:.2f}s")
-            print(f"Val: NDCG@10 {val_result['NDCG@k']:.4f}, Hit@10 {val_result['Hit@k']:.4f}, Recall@10 {val_result['Recall@k']:.4f}")
-            print(f"Test: NDCG@10 {test_result['NDCG@k']:.4f}, Hit@10 {test_result['Hit@k']:.4f}, Recall@10 {test_result['Recall@k']:.4f}")
-
-            if val_result["NDCG@k"] > best_val_ndcg:
-                best_val_ndcg = val_result["NDCG@k"]
-                fname = f"SASRec.epoch={epoch}.pth"
-                torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", fname))
-            t0 = time.time()
+    if dist.get_rank() == 0:
+        final_model_path = os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", "SASRec.final.pth")
+        torch.save(model.state_dict(), final_model_path)
+        print(f"Final model saved at {final_model_path}")
 
     dist.destroy_process_group()
     if dist.get_rank() == 0:

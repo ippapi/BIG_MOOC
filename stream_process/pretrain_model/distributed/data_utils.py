@@ -34,8 +34,8 @@ def data_retrieval():
             num_courses = max(num_courses, course)
 
     load_train('/content/drive/MyDrive/BIG_MOOC/dataset/train_df.csv', train)
-    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', validation)
-    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', test)
+    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', train)
+    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', train)
 
     return [train, validation, test, num_users + 1, num_courses + 1]
 
@@ -91,6 +91,11 @@ class DistributedSampler(Sampler):
                 break
 
         return user_id, seq_course, pos_course, neg_course
+    
+    def set_epoch(self, epoch):
+        self.epoch = epoch
+        np.random.seed(1601 + epoch)
+        np.random.shuffle(self.user_ids)
 
     def next_batch(self):
         if self.index + self.batch_size > len(self.user_ids):
