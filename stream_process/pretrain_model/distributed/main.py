@@ -27,16 +27,15 @@ def main():
     parser.add_argument('--num_heads', default=1, type=int)
     parser.add_argument('--dropout_rate', default=0.2, type=float)
     parser.add_argument('--l2_emb', default=0.0, type=float)
-    parser.add_argument('--device', default='cuda', type=str)
+    parser.add_argument('--device', default='cpu', type=str)
     parser.add_argument('--inference_only', default=False, type=str2bool)
     parser.add_argument('--state_dict_path', default=None, type=str)
     parser.add_argument('--local_rank', type=int, default=0)
 
     args = parser.parse_args()
 
-    dist.init_process_group(backend='nccl')
-    torch.cuda.set_device(args.local_rank)
-    device = torch.device('cuda', args.local_rank)
+    dist.init_process_group(backend='nccl', init_method='env://', world_size=2, rank=args.local_rank)
+    device = torch.device('cpu')
 
     dataset = data_retrieval()
     [train, validation, test, num_users, num_courses] = dataset
@@ -46,7 +45,7 @@ def main():
                    sequence_size=args.sequence_size, dropout_rate=args.dropout_rate,
                    num_blocks=args.num_blocks).to(device)
 
-    model = DDP(model, device_ids=[args.local_rank])
+    model = DDP(model)
 
     for _, param in model.named_parameters():
         try:

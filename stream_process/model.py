@@ -99,5 +99,3 @@ class SASREC(nn.Module):
         logits = course_embs.matmul(final_respresent.unsqueeze(-1)).squeeze(-1)
 
         return logits
-    
-    def

@@ -54,7 +54,7 @@ class SASREC(nn.Module):
 
     def contextualized_respresent(self, user_interacts):
         interacts_emb = self.course_emb(torch.LongTensor(user_interacts).to(self.device)) * (self.course_emb.embedding_dim ** 0.5) # Scale như khuyến nghị của transformer
-        filtered_pos = np.tile(np.arange(1, user_interacts.shape[1] + 1), [user_interacts.shape[0], 1]) * (user_interacts != 0) # Lọc padding
+        filtered_pos = torch.tensor(np.tile(np.arange(1, user_interacts.shape[1] + 1), [user_interacts.shape[0], 1]), dtype=torch.float32) * (user_interacts != 0).to(torch.long) # Lọc padding
         positions_emb = self.position_emb(torch.LongTensor(filtered_pos).to(self.device))
 
         contextualized_respresent = interacts_emb + positions_emb
@@ -99,5 +99,3 @@ class SASREC(nn.Module):
         logits = course_embs.matmul(final_respresent.unsqueeze(-1)).squeeze(-1)
 
         return logits
-    
-    def
