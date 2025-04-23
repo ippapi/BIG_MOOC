@@ -68,8 +68,8 @@ def main():
     bce_criterion = torch.nn.BCEWithLogitsLoss()
     adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.98))
 
-    best_val_ndcg, best_val_hr = 0.0, 0.0
-    best_test_ndcg, best_test_hr = 0.0, 0.0
+    best_val_ndcg, best_val_hr, best_val_recall = 0.0, 0.0, 0.0
+    best_test_ndcg, best_test_hr, best_test_recall = 0.0, 0.0, 0.0
     total_time = 0.0
     t0 = time.time()
 
@@ -98,12 +98,12 @@ def main():
                 pbar.set_postfix({"loss": f"{loss.item():.4f}"})
                 pbar.update(1)
 
-        if epoch % 20 == 0:
+        if epoch % 50 == 0:
             model.eval()
             t1 = time.time() - t0
             total_time += t1
             print('Evaluating')
-            for k in [1, 5, 10]:
+            for k in [10]:
                 test_result = evaluate(model, dataset, sequence_size = 10, k = k)
                 val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
                 print('epoch:%d, time: %f(s), valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
@@ -111,11 +111,13 @@ def main():
                     k, test_result["NDCG@k"], k, test_result["Hit@k"], k, test_result["Recall@k"]))
 
 
-            if val_result[0] > best_val_ndcg or val_result[1] > best_val_hr or test_result[0] > best_test_ndcg or test_result[1] > best_test_hr:
-                best_val_ndcg = max(val_result[0], best_val_ndcg)
-                best_val_hr = max(val_result[1], best_val_hr)
-                best_test_ndcg = max(test_result[0], best_test_ndcg)
-                best_test_hr = max(test_result[1], best_test_hr)
+            if val_result["NDCG@k"] > best_val_ndcg or val_result["Hit@k"] > best_val_hr or val_result["Recall@k"] > best_val_recall or test_result["NDCG@k"] > best_test_ndcg or test_result["Hit@k"] > best_test_hr or test_result["Recall@k"] > best_test_recall:
+                best_val_ndcg = max(val_result["NDCG@k"], best_val_ndcg)
+                best_val_hr = max(val_result["Hit@k"], best_val_hr)
+                best_val_recall = max(val_result["Recall@k"], best_val_recall)
+                best_test_ndcg = max(test_result["NDCG@k"], best_test_ndcg)
+                best_test_hr = max(test_result["Hit@k"], best_test_hr)
+                best_test_recall = max(test_result["Recall@k"], best_test_recall)
                 folder = train_dir
                 fname = 'SASRec.epoch={}.learning_rate={}.layer={}.head={}.hidden={}.maxlen={}.pth'
                 fname = fname.format(epoch, args.learning_rate, args.num_blocks, args.num_heads, args.embedding_dims, args.sequence_size)
