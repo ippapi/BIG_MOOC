@@ -36,9 +36,7 @@ def main():
 
     dist.init_process_group(
         backend='gloo',
-        init_method='env://',
-        world_size=2,
-        rank=args.local_rank
+        init_method='env://'
     )
     device = torch.device('cpu')
 
