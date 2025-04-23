@@ -39,6 +39,9 @@ def data_retrieval():
     load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', validation)
     load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', test)
 
+    print("Num user: ", num_users + 1)
+    print("Num course: ", num_courses + 1)
+
     return [train, validation, test, num_users + 1, num_courses + 1]
 
 
