@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 from tqdm import tqdm
 
-from model import SASRec
+from model import SASREC
 from data_utils import *
 from evaluate_utils import *
 
@@ -30,20 +30,18 @@ def main():
     parser.add_argument('--state_dict_path', default=None, type=str)
 
     args = parser.parse_args()
-    train_dir = "/content/drive/BIG_MOOC/train_dir"
-    if not os.path.isdir(train_dir):
-        os.makedirs(train_dir)
+    train_dir = "/content/drive/MyDrive/BIG_MOOC/train_dir"
 
     dataset = data_retrieval()
 
     [train, validation, test, num_users, num_courses] = dataset
     num_batch = (len(train) - 1) // args.batch_size + 1
 
-    f = open("/content/drive/BIG_MOOC/log.txt", 'w')
+    f = open("/content/drive/MyDrive/BIG_MOOC/log.txt", 'w')
     f.write('epoch (val_ndcg, val_hit, val_recall) (test_ndcg, test_hit, test_recall)\n')
 
-    sampler = sample_function(train, num_users, num_courses, batch_size=args.batch_size, sequence_size=args.sequence_size)
-    model = SASRec(num_users, num_courses, args.device, hidden_units = 64, maxlen = 50, dropout_rate = 0.1, num_blocks = 2).to(args.device)
+    sampler = Sampler(train, num_users, num_courses, batch_size=args.batch_size, sequence_size=args.sequence_size)
+    model = SASREC(num_users, num_courses, args.device, hidden_units = 64, maxlen = 50, dropout_rate = 0.1, num_blocks = 2).to(args.device)
 
     for _, param in model.named_parameters():
         try:
@@ -68,7 +66,7 @@ def main():
         print('test (NDCG@10: %.4f, Hit@10: %.4f, Recall@10: %4f)' % (eval_result["NDCG@k"], eval_result["Hit@k"], eval_result["Recall@k"]))
 
     bce_criterion = torch.nn.BCEWithLogitsLoss()
-    adam_optimizer = torch.optim.Adam(model.parameters(), learning_rate=args.learning_rate, betas=(0.9, 0.98))
+    adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.98))
 
     best_val_ndcg, best_val_hr = 0.0, 0.0
     best_test_ndcg, best_test_hr = 0.0, 0.0
@@ -91,7 +89,7 @@ def main():
                 indices = np.where(pos_course != 0)
                 loss = bce_criterion(pos_logits[indices], pos_labels[indices])
                 loss += bce_criterion(neg_logits[indices], neg_labels[indices])
-                for param in model.item_emb.parameters():
+                for param in model.course_emb.parameters():
                     loss += args.l2_emb * torch.norm(param)
 
                 loss.backward()
@@ -100,15 +98,18 @@ def main():
                 pbar.set_postfix({"loss": f"{loss.item():.4f}"})
                 pbar.update(1)
 
-        if epoch % 10 == 0:
+        if epoch % 20 == 0:
             model.eval()
             t1 = time.time() - t0
             total_time += t1
-            print('Evaluating', end='')
-            test_result = evaluate(model, dataset, args)
-            val_result = evaluate_validation(model, dataset, args)
-            print('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f), test (NDCG@10: %.4f, HR@10: %.4f)'
-                % (epoch, total_time, val_result[0], val_result[1], test_result[0], test_result[1]))
+            print('Evaluating')
+            for k in [1, 5, 10]:
+                test_result = evaluate(model, dataset, sequence_size = 10, k = k)
+                val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
+                print('epoch:%d, time: %f(s), valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
+                    (epoch, total_time, k, val_result["NDCG@k"], k, val_result["Hit@k"], k, val_result["Recall@k"],
+                    k, test_result["NDCG@k"], k, test_result["Hit@k"], k, test_result["Recall@k"]))
+
 
             if val_result[0] > best_val_ndcg or val_result[1] > best_val_hr or test_result[0] > best_test_ndcg or test_result[1] > best_test_hr:
                 best_val_ndcg = max(val_result[0], best_val_ndcg)
@@ -117,7 +118,7 @@ def main():
                 best_test_hr = max(test_result[1], best_test_hr)
                 folder = train_dir
                 fname = 'SASRec.epoch={}.learning_rate={}.layer={}.head={}.hidden={}.maxlen={}.pth'
-                fname = fname.format(epoch, args.learning_rate, args.num_blocks, args.num_heads, args.hidden_units, args.maxlen)
+                fname = fname.format(epoch, args.learning_rate, args.num_blocks, args.num_heads, args.embedding_dims, args.sequence_size)
                 torch.save(model.state_dict(), os.path.join(folder, fname))
 
             f.write(str(epoch) + ' ' + str(val_result) + ' ' + str(test_result) + '\n')
@@ -128,7 +129,7 @@ def main():
         if epoch == args.num_epochs:
             folder = args.dataset + '_' + train_dir
             fname = 'SASRec.epoch={}.learning_rate={}.layer={}.head={}.hidden={}.maxlen={}.pth'
-            fname = fname.format(args.num_epochs, args.learning_rate, args.num_blocks, args.num_heads, args.hidden_units, args.maxlen)
+            fname = fname.format(args.num_epochs, args.learning_rate, args.num_blocks, args.num_heads, args.embedding_dims, args.sequence_size)
             torch.save(model.state_dict(), os.path.join(folder, fname))
 
     f.close()

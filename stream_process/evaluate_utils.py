@@ -82,7 +82,7 @@ def evaluate_validation(model, dataset, sequence_size = 10, k = 1):
         interacted_courses.add(0)
         predict_courses = [validation[user][0]]
         for _ in range(100):
-            predict_course = np.random.randint(0, num_courses)
+            course = np.random.randint(0, num_courses)
             while course in interacted_courses:
                 course = np.random.randint(0, num_courses)
             predict_courses.append(course)

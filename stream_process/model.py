@@ -19,14 +19,14 @@ class point_wise_feed_forward_net(nn.Module):
 
         return outputs
 
-class SASREC(nn.module):
+class SASREC(nn.Module):
     def __init__(self, num_users, num_courses, device, hidden_units = 64, maxlen = 50, dropout_rate = 0.1, num_blocks = 2):
         super().__init__()
         self.num_users = num_users
         self.num_courses = num_courses
         self.device = device
 
-        self.course_emb = torch.nn.Embedding(self.course_num+1, hidden_units, padding_idx=0)
+        self.course_emb = torch.nn.Embedding(self.num_courses+1, hidden_units, padding_idx=0)
         self.position_emb = torch.nn.Embedding(maxlen+1, hidden_units, padding_idx=0)
 
         self.dropout = torch.nn.Dropout(dropout_rate)
@@ -43,7 +43,7 @@ class SASREC(nn.module):
             new_attention_layernorm = torch.nn.LayerNorm(hidden_units, eps=1e-8)
             self.attention_layernorms.append(new_attention_layernorm)
 
-            new_attention_layer = torch.nn.MultiheadAttention(hidden_units, num_heads=4, drop = dropout_rate)
+            new_attention_layer = torch.nn.MultiheadAttention(hidden_units, num_heads=4)
             self.attention_layers.append(new_attention_layer)
 
             new_forward_layernorm = torch.nn.LayerNorm(hidden_units, eps=1e-8)
