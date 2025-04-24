@@ -12,10 +12,8 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from collections import OrderedDict
 from pretrain_model.utils.model import SASREC
 from pretrain_model.utils.distributed_data_utils import data_retrieval
-from google.colab import userdata
 
-ngrok_static_domain = userdata.get('NGROK_STATIC_DOMAIN')
-
+ngrok_static_domain = os.environ["NGROK_STATIC_DOMAIN"]
 class DPP_Worker:
     def __init__(self, local_rank):
         dist.init_process_group(
