@@ -5,6 +5,7 @@ import torch.nn as nn
 import socket
 import pickle
 import numpy as np
+from threading import Thread
 from tqdm import tqdm
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -57,10 +58,8 @@ class DPP_Worker:
 
         return loss.item()
     
-    
-    def run(self):
-        client_socket, addr = self.server_socket.accept()
-        while client_socket:
+    def handle_connection(self, client_socket):
+        with client_socket:
             try:
                 data = b""
                 while True:
@@ -69,12 +68,15 @@ class DPP_Worker:
                         break
                     data += packet
                 data = pickle.loads(data)
-            except Exception:
-                print(f"[RANK {self.local_rank}] is idle ...")
-                time.sleep(1)
-                continue
-
-            self.process_sample(data)
+                self.process_sample(data)
+            except Exception as e:
+                print(f"[RANK {self.local_rank}] Error while receiving: {e}")
+    
+    def run(self):
+        while True:
+            client_socket, addr = self.server_socket.accept()
+            print(f"[RANK {self.local_rank}] Accepted connection from {addr}")
+            Thread(target=self.handle_connection, args=(client_socket,), daemon=True).start()
 
         dist.destroy_process_group()
 

@@ -127,8 +127,8 @@ def main():
 
         training_data = []
         for record in records:
-            user_id = record["user_id"]
-            course_id = record["course_id"]
+            user_id = int(record["user_id"])
+            course_id = int(record["course_id"])
 
             if user_id not in interact_history:
                 interact_history[user_id] = []
