@@ -61,37 +61,41 @@ def sample_negative_item_for_user(user_id, users_interacts, num_courses, sequenc
         if next_id == -1:
             break
 
+    predict_courses = list(set(range(num_courses)) - course_set)
+
     return {
         "user_id": user_id,
         "seq": [seq_course.tolist()],
         "pos": [pos_course.tolist()],
-        "neg": [neg_course.tolist()]
+        "neg": [neg_course.tolist()],
+        "pred": [predict_courses]
     }
 
-def send_to_ddp_worker(partition, num_epochs = 25, num_workers = 2):
+def send_to_ddp_worker(partition, num_workers = 2):
     for record in partition:
         user_id = record["user_id"]
         seq = record["seq"]
         pos = record["pos"]
         neg = record["neg"]
+        pred = record["pred"]
 
         sample = {
             "user_id": user_id,          
             "seq": seq,                  
             "pos": pos,
-            "neg": neg
+            "neg": neg,
+            "pred": pred,
         }
 
         worker_rank = user_id % num_workers
         worker_port = 1601 + worker_rank
 
-        for _ in range(num_epochs):
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect(("localhost", worker_port))
-                    s.sendall(pickle.dumps(sample))
-            except Exception as e:
-                print(f"[ERROR] Failed to send to worker {worker_rank} (port {worker_port}): {e}")
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect(("localhost", worker_port))
+                s.sendall(pickle.dumps(sample))
+        except Exception as e:
+            print(f"[ERROR] Failed to send to worker {worker_rank} (port {worker_port}): {e}")
 
 def main():
     parser = argparse.ArgumentParser()

@@ -41,29 +41,31 @@ class DPP_Worker:
         print(f"Rank {local_rank}: ready for update at port {1601 + local_rank}!")
 
     def process_sample(self, data):
-        self.model.train()
-        user, seq_course, pos_course, neg_course = np.array(data["user_id"]), np.array(data["seq"]), np.array(data["pos"]), np.array(data["neg"])
-        user = torch.LongTensor(user).to(self.device)
-        seq_course = torch.LongTensor(seq_course).to(self.device)
-        pos_course = torch.LongTensor(pos_course).to(self.device)
-        neg_course = torch.LongTensor(neg_course).to(self.device)
+        num_epochs = 25
+        for epoch in range(1, num_epochs + 1):
+            self.model.train()
+            user, seq_course, pos_course, neg_course = np.array(data["user_id"]), np.array(data["seq"]), np.array(data["pos"]), np.array(data["neg"])
+            user = torch.LongTensor(user).to(self.device)
+            seq_course = torch.LongTensor(seq_course).to(self.device)
+            pos_course = torch.LongTensor(pos_course).to(self.device)
+            neg_course = torch.LongTensor(neg_course).to(self.device)
 
-        self.optimizer.zero_grad()
-        pos_logits, neg_logits = self.model(user, seq_course, pos_course, neg_course)
-        pos_labels, neg_labels = torch.ones(pos_logits.shape, device = self.device), torch.zeros(neg_logits.shape, device= self.device)
+            self.optimizer.zero_grad()
+            pos_logits, neg_logits = self.model(user, seq_course, pos_course, neg_course)
+            pos_labels, neg_labels = torch.ones(pos_logits.shape, device = self.device), torch.zeros(neg_logits.shape, device= self.device)
 
-        indices = np.where(pos_course != 0)
-        loss = self.bce_loss(pos_logits[indices], pos_labels[indices])
-        loss += self.bce_loss(neg_logits[indices], neg_labels[indices])
-        loss.backward()
-        self.optimizer.step()
+            indices = np.where(pos_course != 0)
+            loss = self.bce_loss(pos_logits[indices], pos_labels[indices])
+            loss += self.bce_loss(neg_logits[indices], neg_labels[indices])
+            loss.backward()
+            self.optimizer.step()
 
-        print(f"RANK {self.local_rank}: Updated user {user} - loss {loss.item():.4f}")
+            print(f"RANK {self.local_rank}: Updated user {user} epoch {epoch} - loss {loss.item():.4f}")
 
         self.model.eval()
 
         with torch.no_grad():
-            predict_courses = data["predict_courses"]
+            predict_courses = data["pred"]
             predictions = -self.model.predict(
                 user,
                 np.array([seq_course]),
