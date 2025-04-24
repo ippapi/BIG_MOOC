@@ -6,7 +6,7 @@ from pyspark.sql import Row
 from pyspark.streaming import StreamingContext
 from pyspark.ml.torch.distributor import TorchDistributor
 from pyspark.sql.functions import col, from_json
-from pyspark.sql.types import StructType, StructField, IntegerType
+from pyspark.sql.types import StructType, StructField, StringType
 import socket
 import pickle
 from threading import Thread
@@ -14,8 +14,10 @@ from pretrain_model.utils.distributed_data_utils import data_retrieval
 import numpy as np
 
 schema = StructType([
-    StructField("user_id", IntegerType(), True),
-    StructField("course_id", IntegerType(), True)
+    StructField("result", StructType([
+        StructField("user_id", StringType()),
+        StructField("course_id", StringType())
+    ]))
 ])
 
 def run_distributor(num_workers):
@@ -117,7 +119,7 @@ def main():
 
         parsed_df = df.select(from_json(col("value"), schema).alias("data"))
 
-        parsed_df = parsed_df.select("data.user_id", "data.course_id")
+        parsed_df = parsed_df.select("data.result.user_id", "data.result.course_id")
 
         records = parsed_df.rdd.collect()
 
@@ -149,6 +151,12 @@ def main():
         .option("host", "localhost") \
         .option("port", 9999) \
         .load()
+    
+    df.writeStream \
+        .format("console") \
+        .outputMode("append") \
+        .start()
+
 
     query = df.writeStream \
         .foreachBatch(parse_and_send) \
