@@ -68,7 +68,7 @@ def sample_negative_item_for_user(user_id, users_interacts, num_courses, sequenc
         "seq": [seq_course.tolist()],
         "pos": [pos_course.tolist()],
         "neg": [neg_course.tolist()],
-        "pred": [predict_courses]
+        "pred": predict_courses
     }
 
 def send_to_ddp_worker(partition, num_workers = 2):
