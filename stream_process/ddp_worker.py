@@ -60,7 +60,7 @@ class DPP_Worker:
             loss.backward()
             self.optimizer.step()
 
-            print(f"RANK {self.local_rank}: Updated user {data["user_id"]} epoch {epoch} - loss {loss.item():.4f}")
+            print(f"RANK {self.local_rank}: Updated user {data['user_id']} epoch {epoch} - loss {loss.item():.4f}")
 
         self.model.eval()
 
