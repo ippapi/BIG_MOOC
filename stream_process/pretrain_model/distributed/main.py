@@ -30,7 +30,12 @@ def main():
     parser.add_argument('--device', default='cpu', type=str)
     parser.add_argument('--inference_only', default=False, type=str2bool)
     parser.add_argument('--state_dict_path', default=None, type=str)
-    parser.add_argument('--local_rank', type=int, default=0)
+    
+    rank = int(os.environ["RANK"])
+    local_rank = int(os.environ["LOCAL_RANK"])
+    world_size = int(os.environ["WORLD_SIZE"])
+    print(f"Rank: {rank}, Local rank: {local_rank}, World size: {world_size}")
+
 
     args = parser.parse_args()
 
@@ -43,7 +48,7 @@ def main():
     dataset = data_retrieval()
     [train, validation, test, num_users, num_courses] = dataset
 
-    sampler = DistributedSampler(train, num_users, num_courses, batch_size = args.batch_size, sequence_size = args.sequence_size, world_size = 2, rank = args.local_rank)
+    sampler = DistributedSampler(train, num_users, num_courses, batch_size = args.batch_size, sequence_size = args.sequence_size, world_size = world_size, rank = local_rank)
     model = SASREC(num_users, num_courses, args.device, embedding_dims=args.embedding_dims,
                    sequence_size=args.sequence_size, dropout_rate=args.dropout_rate,
                    num_blocks=args.num_blocks).to(device)
@@ -116,14 +121,15 @@ def main():
                 pbar.set_postfix({"loss": f"{loss.item():.4f}"})
                 pbar.update(1)
 
-    if dist.get_rank() == 0:
-        final_model_path = os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", "SASRec.final.pth")
-        torch.save(model.state_dict(), final_model_path)
-        print(f"Final model saved at {final_model_path}")
+    try:
+        if local_rank == 0:
+            final_model_path = os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", "SASRec.final.pth")
+            torch.save(model.state_dict(), final_model_path)
+            print(f"Final model saved at {final_model_path}")
+    except:
+        pass
 
     dist.destroy_process_group()
-    if dist.get_rank() == 0:
-        print("Training done.")
 
 if __name__ == '__main__':
     main()

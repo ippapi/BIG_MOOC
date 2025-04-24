@@ -4,12 +4,13 @@ import numpy as np
 from torch import nn
 from pyspark.sql import SparkSession
 from pyspark.streaming import StreamingContext
-from model import YourModelClass
+from model import SASREC
 from utils import get_all_course_ids_except, topk_indices
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = YourModelClass(args).to(device)
-model.load_state_dict(torch.load("model.pt", map_location=device))
+device = "cpu"
+model = SASREC(99970, 2828, device, embedding_dims = 64,
+                sequence_size=15, dropout_rate=0.2).to(device)
+model.load_state_dict(torch.load("/content/drive/MyDrive/BIG_MOOC/train_dir/SASRec.final.pth", map_location=device))
 model.train()
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
