@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
-
+from collections import OrderedDict
 from pretrain_model.utils.model import SASREC
 from pretrain_model.utils.distributed_data_utils import data_retrieval
 
@@ -21,18 +21,26 @@ class DPP_Worker:
         self.local_rank = local_rank
         self.device = "cpu"
         model = SASREC(99970, 2828, self.device, embedding_dims = 64, sequence_size=15, dropout_rate=0.2).to(self.device)
-        model.load_state_dict(torch.load("/content/drive/MyDrive/BIG_MOOC/train_dir/SASRec.final.pth", map_location=self.device))
-        model.train()
-        self.model = DDP(model)
+        state_dict = torch.load("/content/drive/MyDrive/BIG_MOOC/train_dir/SASRec.final.pth", map_location=self.device)
+
+        new_state_dict = OrderedDict()
+        for k, v in state_dict.items():
+            new_key = k.replace("module.", "") if k.startswith("module.") else k
+            new_state_dict[new_key] = v
+
+        model.load_state_dict(new_state_dict)
+
+        self.model = model
         self.optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
         self.bce_loss = nn.BCEWithLogitsLoss()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(("localhost", 9999 + local_rank))
+        self.server_socket.bind(("localhost", 1601 + local_rank))
         self.server_socket.listen()
 
-        print(f"Rank {local_rank}: ready for update at port {9999 + local_rank}!")
+        print(f"Rank {local_rank}: ready for update at port {1601 + local_rank}!")
 
     def process_sample(self, data):
+        self.model.train()
         user, seq_course, pos_course, neg_course = np.array(data["user_id"]), np.array(data["seq"]), np.array(data["pos"]), np.array(data["neg"])
 
         self.optimizer.zero_grad()

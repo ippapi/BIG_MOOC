@@ -8,9 +8,22 @@ from pyspark.ml.torch.distributor import TorchDistributor
 import socket
 import pickle
 from pretrain_model.utils.distributed_data_utils import data_retrieval
-from ddp_worker import DPP_Worker
-
 import numpy as np
+from multiprocessing import Process
+
+def run_distributor(num_workers):
+    try:
+        distributor = TorchDistributor(
+            num_processes=num_workers,
+            local_mode=True,
+            use_gpu=False
+        )
+        
+        distributor.run("/content/BIG_MOOC/stream_process/ddp_worker.py")
+    except Exception as e:
+        import traceback
+        print(f"Error: {str(e)}")
+        traceback.print_exc()
 
 def sample_negative_item_for_user(user_id, users_interacts, num_courses, sequence_size=10):
     def random_neq(l, r, s):
@@ -46,12 +59,6 @@ def sample_negative_item_for_user(user_id, users_interacts, num_courses, sequenc
         "neg": [neg_course.tolist()]
     }
 
-
-def start_ddp_worker():
-    local_rank = int(os.environ["LOCAL_RANK"])
-    worker = DPP_Worker(local_rank)
-    worker.run()
-
 def send_to_ddp_worker(partition, num_epochs = 25, num_workers = 2):
     for record in partition:
         user_id = record["user_id"]
@@ -67,7 +74,7 @@ def send_to_ddp_worker(partition, num_epochs = 25, num_workers = 2):
         }
 
         worker_rank = user_id % num_workers
-        worker_port = 9999 + worker_rank
+        worker_port = 1601 + worker_rank
 
         for _ in range(num_epochs):
             try:
@@ -86,21 +93,18 @@ def main():
     [interact_history, _, _, num_users, num_courses] = dataset
 
     spark = SparkSession.builder \
-        .appName("DDP Streaming Trainer") \
+        .appName("Streaming REC") \
         .getOrCreate()
+
+    process = Process(target=run_distributor, args=(args.num_workers,))
+    process.start()
+    process.join()
+
+
+    print(f"[Main] Launched {args.num_workers} workers")
 
     sc = spark.sparkContext
     ssc = StreamingContext(sc, batchDuration=5)
-
-    distributor = TorchDistributor(
-        num_processes=args.num_workers,
-        local_mode=True,
-        use_gpu=False
-    )
-
-    distributor.run(start_ddp_worker)
-    print(f"[Main] Launched {args.num_workers} workers")
-
     dstream = ssc.socketTextStream("localhost", 9999)
 
     def parse_and_send(rdd):
