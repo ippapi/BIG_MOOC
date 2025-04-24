@@ -43,18 +43,37 @@ class DPP_Worker:
     def process_sample(self, data):
         self.model.train()
         user, seq_course, pos_course, neg_course = np.array(data["user_id"]), np.array(data["seq"]), np.array(data["pos"]), np.array(data["neg"])
+        user = torch.LongTensor(user).to(self.device)
+        seq_course = torch.LongTensor(seq_course).to(self.device)
+        pos_course = torch.LongTensor(pos_course).to(self.device)
+        neg_course = torch.LongTensor(neg_course).to(self.device)
 
         self.optimizer.zero_grad()
         pos_logits, neg_logits = self.model(user, seq_course, pos_course, neg_course)
         pos_labels, neg_labels = torch.ones(pos_logits.shape, device = self.device), torch.zeros(neg_logits.shape, device= self.device)
 
+        indices = np.where(pos_course != 0)
         loss = self.bce_loss(pos_logits[indices], pos_labels[indices])
         loss += self.bce_loss(neg_logits[indices], neg_labels[indices])
-        indices = np.where(pos_course != 0)
         loss.backward()
         self.optimizer.step()
 
         print(f"RANK {self.local_rank}: Updated user {user} - loss {loss.item():.4f}")
+
+        self.model.eval()
+
+        with torch.no_grad():
+            predict_courses = data["predict_courses"]
+            predictions = -self.model.predict(
+                user,
+                np.array([seq_course]),
+                predict_courses
+            )[0]
+
+            top5 = np.argsort(predictions)[:5]
+            top5_course_ids = [predict_courses[i] for i in top5]
+
+            print(f"RANK {self.local_rank}: Top-5 predicted courses: {top5_course_ids}")
 
         return loss.item()
     
