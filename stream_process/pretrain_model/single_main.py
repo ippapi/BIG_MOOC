@@ -5,9 +5,9 @@ import argparse
 import numpy as np
 from tqdm import tqdm
 
-from model import SASREC
-from data_utils import *
-from evaluate_utils import *
+from utils.model import SASREC
+from utils.single_data_utils import *
+from utils.evaluate_utils import *
 
 def str2bool(s):
     if s not in {'false', 'true'}:
@@ -28,32 +28,25 @@ def main():
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--inference_only', default=False, type=str2bool)
     parser.add_argument('--state_dict_path', default=None, type=str)
-
     args = parser.parse_args()
+
     train_dir = "/content/drive/MyDrive/BIG_MOOC/train_dir"
-
     dataset = data_retrieval()
-
-    [train, validation, test, num_users, num_courses] = dataset
+    [train, _, _, num_users, num_courses] = dataset
     num_batch = (len(train) - 1) // args.batch_size + 1
-
-    print(len(train))
 
     f = open("/content/drive/MyDrive/BIG_MOOC/log.txt", 'w')
     f.write('epoch (val_ndcg, val_hit, val_recall) (test_ndcg, test_hit, test_recall)\n')
 
     sampler = Sampler(train, num_users, num_courses, batch_size=args.batch_size, sequence_size=args.sequence_size)
     model = SASREC(num_users, num_courses, args.device, embedding_dims = args.embedding_dims, sequence_size = args.sequence_size, dropout_rate = args.dropout_rate, num_blocks = args.num_blocks).to(args.device)
-
     for _, param in model.named_parameters():
         try:
             torch.nn.init.xavier_normal_(param.data)
         except:
             pass
-
     model.position_emb.weight.data[0, :] = 0
     model.course_emb.weight.data[0, :] = 0
-
     model.train()
 
     epoch_start_idx = 1
@@ -69,7 +62,6 @@ def main():
 
     bce_criterion = torch.nn.BCEWithLogitsLoss()
     adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.98))
-
     best_val_ndcg, best_val_hr, best_val_recall = 0.0, 0.0, 0.0
     best_test_ndcg, best_test_hr, best_test_recall = 0.0, 0.0, 0.0
     total_time = 0.0
@@ -132,7 +124,6 @@ def main():
 
     f.close()
     print("Done")
-
 
 if __name__ == '__main__':
     main()

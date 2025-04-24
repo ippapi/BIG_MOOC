@@ -50,11 +50,18 @@ def evaluate(model, dataset, sequence_size = 10, k = 1):
             print('.', end="")
             sys.stdout.flush()
 
-    return {
-        "NDCG@k": NDCG / valid_user,
-        "Hit@k": HIT / valid_user,
-        "Recall@k": RECALL / valid_user
-    }
+    if valid_user != 0:
+        return {
+            "NDCG@k": NDCG / valid_user,
+            "Hit@k": HIT / valid_user,
+            "Recall@k": RECALL / valid_user
+        }
+    else:
+        return {
+            "NDCG@k": 0.0,
+            "Hit@k": 0.0,
+            "Recall@k": 0.0
+        }
 
 def evaluate_validation(model, dataset, sequence_size = 10, k = 1):
     [train, validation, test, num_users, num_courses] = copy.deepcopy(dataset)
@@ -102,8 +109,15 @@ def evaluate_validation(model, dataset, sequence_size = 10, k = 1):
             print('.', end="")
             sys.stdout.flush()
 
-    return {
-        "NDCG@k": NDCG / valid_user,
-        "Hit@k": HIT / valid_user,
-        "Recall@k": RECALL / valid_user
-    }
+    if valid_user != 0:
+        return {
+            "NDCG@k": NDCG / valid_user,
+            "Hit@k": HIT / valid_user,
+            "Recall@k": RECALL / valid_user
+        }
+    else:
+        return {
+            "NDCG@k": 0.0,
+            "Hit@k": 0.0,
+            "Recall@k": 0.0
+        }

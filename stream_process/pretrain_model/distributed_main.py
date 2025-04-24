@@ -7,9 +7,8 @@ from tqdm import tqdm
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from model import SASREC
-from data_utils import *
-from evaluate_utils import *
+from utils.model import SASREC
+from utils.distributed_data_utils import *
 
 def str2bool(s):
     if s not in {'false', 'true'}:
@@ -28,14 +27,11 @@ def main():
     parser.add_argument('--dropout_rate', default=0.2, type=float)
     parser.add_argument('--l2_emb', default=0.0, type=float)
     parser.add_argument('--device', default='cpu', type=str)
-    parser.add_argument('--inference_only', default=False, type=str2bool)
-    parser.add_argument('--state_dict_path', default=None, type=str)
     
     rank = int(os.environ["RANK"])
     local_rank = int(os.environ["LOCAL_RANK"])
     world_size = int(os.environ["WORLD_SIZE"])
     print(f"Rank: {rank}, Local rank: {local_rank}, World size: {world_size}")
-
 
     args = parser.parse_args()
 
@@ -46,7 +42,7 @@ def main():
     device = torch.device('cpu')
 
     dataset = data_retrieval()
-    [train, validation, test, num_users, num_courses] = dataset
+    [train, _, _, num_users, num_courses] = dataset
 
     sampler = DistributedSampler(train, num_users, num_courses, batch_size = args.batch_size, sequence_size = args.sequence_size, world_size = world_size, rank = local_rank)
     model = SASREC(num_users, num_courses, args.device, embedding_dims=args.embedding_dims,
@@ -65,33 +61,14 @@ def main():
     model.module.course_emb.weight.data[0, :] = 0
 
     epoch_start_idx = 1
-    if args.state_dict_path is not None:
-        map_location = {'cuda:%d' % 0: 'cuda:%d' % args.local_rank}
-        model.load_state_dict(torch.load(args.state_dict_path, map_location=map_location))
-        tail = args.state_dict_path[args.state_dict_path.find('epoch=') + 6:]
-        epoch_start_idx = int(tail[:tail.find('.')]) + 1
-
-    if args.inference_only:
-        model.eval()
-        eval_result = evaluate(model.module, dataset, sequence_size=args.sequence_size, k=10)
-        if dist.get_rank() == 0:
-            print('test (NDCG@10: %.4f, Hit@10: %.4f, Recall@10: %4f)' % (
-                eval_result["NDCG@k"], eval_result["Hit@k"], eval_result["Recall@k"]))
-        return
 
     bce_criterion = torch.nn.BCEWithLogitsLoss()
     adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.98))
 
     num_batch = (len(train) - 1) // args.batch_size + 1
 
-    best_val_ndcg, best_val_hr, best_val_recall = 0.0, 0.0, 0.0
-    best_test_ndcg, best_test_hr, best_test_recall = 0.0, 0.0, 0.0
-    total_time = 0.0
-    t0 = time.time()
-
     for epoch in range(epoch_start_idx, args.num_epochs + 1):
         sampler.set_epoch(epoch)
-        if args.inference_only: break
 
         model.train()
         with tqdm(total=num_batch, desc=f"Epoch {epoch}", unit="batch", disable=(dist.get_rank() != 0)) as pbar:
@@ -120,7 +97,6 @@ def main():
 
                 pbar.set_postfix({"loss": f"{loss.item():.4f}"})
                 pbar.update(1)
-
     try:
         if local_rank == 0:
             final_model_path = os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", "SASRec.final.pth")

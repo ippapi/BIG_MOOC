@@ -1,84 +1,129 @@
+import os
 import json
-import torch
-import numpy as np
-from torch import nn
+import argparse
 from pyspark.sql import SparkSession
+from pyspark.sql import Row
 from pyspark.streaming import StreamingContext
-from model import SASREC
-from utils import get_all_course_ids_except, topk_indices
+from pyspark.ml.torch.distributor import TorchDistributor
+import socket
+import pickle
+from pretrain_model.utils.distributed_data_utils import data_retrieval
+from ddp_worker import DPP_Worker
 
-device = "cpu"
-model = SASREC(99970, 2828, device, embedding_dims = 64,
-                sequence_size=15, dropout_rate=0.2).to(device)
-model.load_state_dict(torch.load("/content/drive/MyDrive/BIG_MOOC/train_dir/SASRec.final.pth", map_location=device))
-model.train()
+import numpy as np
 
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-bce_loss = nn.BCEWithLogitsLoss()
+def sample_negative_item_for_user(user_id, users_interacts, num_courses, sequence_size=10):
+    def random_neq(l, r, s):
+        t = np.random.randint(l, r)
+        while t in s:
+            t = np.random.randint(l, r)
+        return t
 
-# Get all possible course IDs
-ALL_COURSE_IDS = list(range(args.num_courses))  # assume known
+    if user_id not in users_interacts or len(users_interacts[user_id]) <= 1:
+        return None
 
-def online_update_and_recommend(record):
-    try:
-        data = json.loads(record)
-        user_id = data['user_id']
-        seq = data['seq_course']
-        pos = data['pos_course']
-        neg = data['neg_courses']
+    seq_course = np.zeros([sequence_size], dtype=np.int32)
+    pos_course = np.zeros([sequence_size], dtype=np.int32)
+    neg_course = np.zeros([sequence_size], dtype=np.int32)
+    next_course = users_interacts[user_id][-1]
+    next_id = sequence_size - 1
 
-        # Convert to tensor
-        user_tensor = torch.tensor([user_id], dtype=torch.long).to(device)
-        seq_tensor = torch.tensor([seq], dtype=torch.long).to(device)
-        pos_tensor = torch.tensor([[pos]], dtype=torch.long).to(device)
-        neg_tensor = torch.tensor([neg], dtype=torch.long).to(device)
+    course_set = set(users_interacts[user_id])
+    for index in reversed(users_interacts[user_id][:-1]):
+        seq_course[next_id] = index
+        pos_course[next_id] = next_course
+        if next_course != 0:
+            neg_course[next_id] = random_neq(0, num_courses, course_set)
+        next_course = index
+        next_id -= 1
+        if next_id == -1:
+            break
 
-        # Online update
-        pos_logit, neg_logit = model(user_tensor, seq_tensor, pos_tensor, neg_tensor)
-        optimizer.zero_grad()
-        loss = bce_loss(pos_logit, torch.ones_like(pos_logit)) + \
-               bce_loss(neg_logit, torch.zeros_like(neg_logit))
-        for param in model.course_emb.parameters():
-            loss += args.l2_emb * torch.norm(param)
-        loss.backward()
-        optimizer.step()
+    return {
+        "user_id": user_id,
+        "seq": [seq_course.tolist()],
+        "pos": [pos_course.tolist()],
+        "neg": [neg_course.tolist()]
+    }
 
-        print(f"[UPDATE] User {user_id} updated with loss: {loss.item():.4f}")
 
-        # Recommend top-k
-        all_courses = torch.tensor(ALL_COURSE_IDS, dtype=torch.long).to(device)
-        user_seq = seq_tensor  # 1 user only
+def start_ddp_worker():
+    local_rank = int(os.environ["LOCAL_RANK"])
+    worker = DPP_Worker(local_rank)
+    worker.run()
 
-        # Duplicate input for all candidate courses
-        user_batch = user_tensor.repeat(len(all_courses))
-        seq_batch = user_seq.repeat(len(all_courses), 1)
-        course_batch = all_courses.unsqueeze(1)
+def send_to_ddp_worker(partition, num_epochs = 25, num_workers = 2):
+    for record in partition:
+        user_id = record["user_id"]
+        seq = record["seq"]
+        pos = record["pos"]
+        neg = record["neg"]
 
-        # Forward pass
-        scores, _ = model(user_batch, seq_batch, course_batch, course_batch)  # use dummy neg for shape
-        scores = scores.detach().cpu().numpy()
+        sample = {
+            "user_id": user_id,          
+            "seq": seq,                  
+            "pos": pos,
+            "neg": neg
+        }
 
-        # Mask already seen
-        seen = set(seq + [pos] + neg)
-        unseen_idx = [i for i, cid in enumerate(ALL_COURSE_IDS) if cid not in seen]
-        filtered_scores = scores[unseen_idx]
-        filtered_courses = [ALL_COURSE_IDS[i] for i in unseen_idx]
+        worker_rank = user_id % num_workers
+        worker_port = 9999 + worker_rank
 
-        topk = 5
-        topk_idx = np.argsort(filtered_scores)[-topk:][::-1]
-        recommended = [filtered_courses[i] for i in topk_idx]
-
-        print(f"[RECOMMEND] Top-{topk} for user {user_id}: {recommended}")
-    except Exception as e:
-        print(f"[ERROR] {e}")
+        for _ in range(num_epochs):
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect(("localhost", worker_port))
+                    s.sendall(pickle.dumps(sample))
+            except Exception as e:
+                print(f"[ERROR] Failed to send to worker {worker_rank} (port {worker_port}): {e}")
 
 def main():
-    spark = SparkSession.builder.appName("OnlineCourseRec").getOrCreate()
-    ssc = StreamingContext(spark.sparkContext, 1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_workers', default=2, type=int)
+    args = parser.parse_args()
 
-    # Stream from socket or Kafka etc.
-    lines = ssc.socketTextStream("localhost", 9999)
-    lines.foreachRDD(lambda rdd: rdd.foreach(online_update_and_recommend))
+    dataset = data_retrieval()
+    [interact_history, _, _, num_users, num_courses] = dataset
+
+    spark = SparkSession.builder \
+        .appName("DDP Streaming Trainer") \
+        .getOrCreate()
+
+    sc = spark.sparkContext
+    ssc = StreamingContext(sc, batchDuration=5)
+
+    distributor = TorchDistributor(
+        num_processes=args.num_workers,
+        local_mode=True,
+        use_gpu=False
+    )
+
+    distributor.run(start_ddp_worker)
+    print(f"[Main] Launched {args.num_workers} workers")
+
+    dstream = ssc.socketTextStream("localhost", 9999)
+
+    def parse_and_send(rdd):
+        if not rdd.isEmpty():
+            records = rdd.map(lambda x: eval(x)).collect()
+            training_data = []
+            for record in records:
+                user_id = int(record["user_id"])
+                course_id = int(record["course_id"])
+
+                if user_id not in interact_history:
+                    interact_history[user_id] = []
+
+                interact_history[user_id].append(course_id)
+
+                training_row = sample_negative_item_for_user(user_id, interact_history, num_courses, sequence_size = 15)
+
+                if training_row:
+                    training_data.append(training_row)
+
+            send_to_ddp_worker(training_data, num_workers = args.num_workers)
+
+    dstream.foreachRDD(parse_and_send)
 
     ssc.start()
     ssc.awaitTermination()
