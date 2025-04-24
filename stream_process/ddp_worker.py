@@ -13,7 +13,7 @@ from pretrain_model.utils.model import SASREC
 from pretrain_model.utils.distributed_data_utils import data_retrieval
 
 class DPP_Worker:
-    def __init__(self, local_rank, port):
+    def __init__(self, local_rank):
         dist.init_process_group(
             backend='gloo',
             init_method='env://'
@@ -27,10 +27,10 @@ class DPP_Worker:
         self.optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
         self.bce_loss = nn.BCEWithLogitsLoss()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(("localhost", port))
+        self.server_socket.bind(("localhost", 9999 + local_rank))
         self.server_socket.listen()
 
-        print(f"Rank {local_rank}: ready for update at port {port}!")
+        print(f"Rank {local_rank}: ready for update at port {9999 + local_rank}!")
 
     def process_sample(self, data):
         user, seq_course, pos_course, neg_course = np.array(data["user_id"]), np.array(data["seq"]), np.array(data["pos"]), np.array(data["neg"])
@@ -69,3 +69,8 @@ class DPP_Worker:
             self.process_sample(data)
 
         dist.destroy_process_group()
+
+if __name__ == "__main__":
+    local_rank = int(os.environ["LOCAL_RANK"])
+    worker = DPP_Worker(local_rank)
+    worker.run()
