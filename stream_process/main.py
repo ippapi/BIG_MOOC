@@ -110,20 +110,18 @@ def main():
 
     def parse_and_send(df, batch_id):
         print("received")
-        if df.isEmpty():
+        if df.rdd.isEmpty():
             return
         
         print(df)
 
         parsed_df = df.select(from_json(col("value"), schema).alias("data"))
 
-        print(parsed_df)
-
         parsed_df = parsed_df.select("data.user_id", "data.course_id")
 
         records = parsed_df.rdd.collect()
 
-        print(record)
+        print(records)
 
         training_data = []
         for record in records:
