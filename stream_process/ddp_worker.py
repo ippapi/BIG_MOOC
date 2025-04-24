@@ -60,7 +60,7 @@ class DPP_Worker:
             loss.backward()
             self.optimizer.step()
 
-            print(f"RANK {self.local_rank}: Updated user {user} epoch {epoch} - loss {loss.item():.4f}")
+            print(f"RANK {self.local_rank}: Updated user {data["user_id"]} epoch {epoch} - loss {loss.item():.4f}")
 
         self.model.eval()
 
@@ -72,8 +72,20 @@ class DPP_Worker:
                 predict_courses
             )[0]
 
-            top5 = np.argsort(predictions)[:5]
-            top5_course_ids = [predict_courses[i] for i in top5]
+            print(f"Raw predictions shape: {predictions.shape}")
+
+            predictions = predictions[0]
+            print(f"Predictions after indexing: {predictions[:10]} ...")
+
+            if len(predictions) < 5:
+                print("⚠️ Not enough predictions to get top 5!")
+                return predict_courses[:len(predictions)]
+
+            top5_indices = predictions.argsort()[:5]
+            print(f"Top 5 indices: {top5_indices}")
+
+            top5_course_ids = [predict_courses[i] for i in top5_indices]
+            print(f"Top 5 course IDs: {top5_course_ids}")
 
             print(f"RANK {self.local_rank}: Top-5 predicted courses: {top5_course_ids}")
 
