@@ -72,24 +72,18 @@ class DPP_Worker:
                 predict_courses
             )[0]
 
-            print(f"Raw predictions shape: {predictions.shape}")
-
-            predictions = predictions[0]
+            predictions = predictions.squeeze()
             print(f"Predictions after indexing: {predictions[:10]} ...")
 
-            if len(predictions) < 5:
-                print("⚠️ Not enough predictions to get top 5!")
-                return predict_courses[:len(predictions)]
+            if predictions.ndim == 1:
+                top5_idx = predictions.argsort()[:5]
+                top5_courses = [predict_courses[i] for i in top5_idx]
+            else:
+                raise ValueError(f"Expected 1D predictions, got shape: {predictions.shape}")
 
-            top5_indices = predictions.argsort()[:5]
-            print(f"Top 5 indices: {top5_indices}")
+            print(f"RANK {self.local_rank}: Top-5 predicted courses: {top5_courses}")
 
-            top5_course_ids = [predict_courses[i] for i in top5_indices]
-            print(f"Top 5 course IDs: {top5_course_ids}")
-
-            print(f"RANK {self.local_rank}: Top-5 predicted courses: {top5_course_ids}")
-
-        return loss.item(), top5_course_ids
+        return loss.item(), top5_courses
     
     def handle_connection(self, client_socket):
         with client_socket:
