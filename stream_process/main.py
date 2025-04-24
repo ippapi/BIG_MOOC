@@ -98,7 +98,6 @@ def main():
 
     process = Process(target=run_distributor, args=(args.num_workers,))
     process.start()
-    process.join()
 
 
     print(f"[Main] Launched {args.num_workers} workers")

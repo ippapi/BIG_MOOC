@@ -7,4 +7,7 @@
  -  **Run Producer**: docker-compose up --build producer
  -  **Consumer**: Update ngrok link in main.py and then docker-compose up --build consumer
  -  **Send API**: curl -Uri http://localhost:8000/produce  -Method Post  -Headers @{ "Content-Type" = "application/json" } ` -Body '{"user_id": 1, "course_id": 101}'
+ - curl -X POST http://localhost:8000/produce \
+     -H "Content-Type: application/json" \
+     -d '{"user_id": 1, "course_id": 101}'
 

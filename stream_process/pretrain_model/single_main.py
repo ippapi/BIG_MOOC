@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 from tqdm import tqdm
 
-from utils.model import SASREC
+from utils.single_model import SASREC
 from utils.single_data_utils import *
 from utils.evaluate_utils import *
 
