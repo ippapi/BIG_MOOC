@@ -10,4 +10,6 @@
  - curl -X POST http://localhost:8000/produce \
      -H "Content-Type: application/json" \
      -d '{"user_id": 1, "course_id": 101}'
+ - ngrok http --url=careful-formally-locust.ngrok-free.app 8000 -> to create tunnel to receive recommendation
+ 
 

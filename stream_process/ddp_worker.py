@@ -1,9 +1,9 @@
 import os
-import time
 import torch
 import torch.nn as nn
 import socket
 import pickle
+import requests
 import numpy as np
 from threading import Thread
 from tqdm import tqdm
@@ -68,7 +68,7 @@ class DPP_Worker:
             predict_courses = data["pred"]
             predictions = -self.model.predict(
                 user,
-                np.array([seq_course]),
+                seq_course,
                 predict_courses
             )[0]
 
@@ -77,7 +77,7 @@ class DPP_Worker:
 
             print(f"RANK {self.local_rank}: Top-5 predicted courses: {top5_course_ids}")
 
-        return loss.item()
+        return loss.item(), top5_course_ids
     
     def handle_connection(self, client_socket):
         with client_socket:
@@ -89,9 +89,25 @@ class DPP_Worker:
                         break
                     data += packet
                 data = pickle.loads(data)
-                self.process_sample(data)
+                loss, top5_course_ids = self.process_sample(data)
+
+                self.send_result_back_to_local({
+                    "user_id": data["user_id"],
+                    "top5_courses": top5_course_ids,
+                    "loss": loss
+                })
+
             except Exception as e:
                 print(f"[RANK {self.local_rank}] Error while receiving: {e}")
+
+    def send_result_back_to_local(self, result_data):
+        try:
+            ngrok_url = ngrok_static_domain + "/receive"
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post(ngrok_url, json=result_data, headers=headers)
+            print(f"[RANK {self.local_rank}] Response: {response}")
+        except Exception as e:
+            print(f"[RANK {self.local_rank}] Failed to send result back: {e}")
     
     def run(self):
         while True:

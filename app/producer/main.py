@@ -1,5 +1,5 @@
 import socket
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from confluent_kafka import Producer
 
@@ -22,3 +22,9 @@ async def produce(interaction: Interaction):
     producer.produce('user_course_interact', key=user_id_bytes, value=course_id_bytes)
     producer.flush()
     return {"message": "Data sent to Kafka", "interaction": data}
+
+@app.post("/receive")
+async def receive_data(request: Request):
+    data = await request.json()
+    print("Received data via ngrok:", data)
+    return {"status": "received"}
