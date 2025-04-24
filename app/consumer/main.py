@@ -10,7 +10,7 @@ conf = {'bootstrap.servers': "kafka:9092",
 
 consumer = Consumer(conf)
 running = True
-colab_url = "https://2f81-34-16-232-238.ngrok-free.app/receive"  # Change over time, broke hahaha
+colab_url = "https://2ee5-34-73-163-103.ngrok-free.app/receive"  # Change over time, broke hahaha
 
 def basic_consume_loop(consumer, topics):
     print("Consumer is running and trying to subscribe to topics:", topics)
@@ -49,9 +49,8 @@ def basic_consume_loop(consumer, topics):
         except KafkaException as e:
             print(f"Kafka error occurred: {e}, retrying in 5 seconds...")
             sys.stdout.flush()
-            time.sleep(5)  # Sleep for 5 seconds before retrying
+            time.sleep(5)
     
-    # Ensure to flush stdout and close the consumer when done
     sys.stdout.flush()
     consumer.close()
 

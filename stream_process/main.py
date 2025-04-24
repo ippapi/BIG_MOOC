@@ -5,11 +5,18 @@ from pyspark.sql import SparkSession
 from pyspark.sql import Row
 from pyspark.streaming import StreamingContext
 from pyspark.ml.torch.distributor import TorchDistributor
+from pyspark.sql.functions import col, from_json
+from pyspark.sql.types import StructType, StructField, IntegerType
 import socket
 import pickle
+from threading import Thread
 from pretrain_model.utils.distributed_data_utils import data_retrieval
 import numpy as np
-from multiprocessing import Process
+
+schema = StructType([
+    StructField("user_id", IntegerType(), True),
+    StructField("course_id", IntegerType(), True)
+])
 
 def run_distributor(num_workers):
     try:
@@ -96,40 +103,61 @@ def main():
         .appName("Streaming REC") \
         .getOrCreate()
 
-    process = Process(target=run_distributor, args=(args.num_workers,))
-    process.start()
-
+    thread = Thread(target=run_distributor, args=(args.num_workers,))
+    thread.start()
 
     print(f"[Main] Launched {args.num_workers} workers")
 
-    sc = spark.sparkContext
-    ssc = StreamingContext(sc, batchDuration=5)
-    dstream = ssc.socketTextStream("localhost", 9999)
+    def parse_and_send(df, batch_id):
+        print("received")
+        if df.isEmpty():
+            return
+        
+        print(df)
 
-    def parse_and_send(rdd):
-        if not rdd.isEmpty():
-            records = rdd.map(lambda x: eval(x)).collect()
-            training_data = []
-            for record in records:
-                user_id = int(record["user_id"])
-                course_id = int(record["course_id"])
+        parsed_df = df.select(from_json(col("value"), schema).alias("data"))
 
-                if user_id not in interact_history:
-                    interact_history[user_id] = []
+        print(parsed_df)
 
-                interact_history[user_id].append(course_id)
+        parsed_df = parsed_df.select("data.user_id", "data.course_id")
 
-                training_row = sample_negative_item_for_user(user_id, interact_history, num_courses, sequence_size = 15)
+        records = parsed_df.rdd.collect()
 
-                if training_row:
-                    training_data.append(training_row)
+        print(record)
 
-            send_to_ddp_worker(training_data, num_workers = args.num_workers)
+        training_data = []
+        for record in records:
+            user_id = record["user_id"]
+            course_id = record["course_id"]
 
-    dstream.foreachRDD(parse_and_send)
+            if user_id not in interact_history:
+                interact_history[user_id] = []
 
-    ssc.start()
-    ssc.awaitTermination()
+            interact_history[user_id].append(course_id)
+
+            training_row = sample_negative_item_for_user(user_id, interact_history, num_courses, sequence_size=15)
+
+            if training_row:
+                training_data.append(training_row)
+
+            print(training_row)
+
+        send_to_ddp_worker(training_data, num_workers=args.num_workers)
+
+    spark = SparkSession.builder.appName("StreamingRec").getOrCreate()
+
+    df = spark.readStream \
+        .format("socket") \
+        .option("host", "localhost") \
+        .option("port", 9999) \
+        .load()
+
+    query = df.writeStream \
+        .foreachBatch(parse_and_send) \
+        .outputMode("append") \
+        .start()
+
+    query.awaitTermination()
 
 if __name__ == "__main__":
     main()
