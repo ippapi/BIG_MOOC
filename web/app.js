@@ -107,18 +107,19 @@ app.post('/enroll', async (req, res) => {
   const { courseId } = req.body;
 
   try {
-    const query = 'INSERT INTO user_course (user_id, course_id, enroll_time) VALUES (?, ?, ?)';
-    const params = [req.session.userId, courseId, new Date()];
-    await client.execute(query, params, { prepare: true });
+    // Code bạn làm ở đây đừng có xóa, chạy được á.
+    // const query = 'INSERT INTO user_course (user_id, course_id, enroll_time) VALUES (?, ?, ?)';
+    // const params = [req.session.userId, courseId, new Date()];
+    // await client.execute(query, params, { prepare: true });
 
-    await axios.post('http://localhost:8000/produce', {
-      user_id: req.session.userId,
-      course_id: courseId
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    // await axios.post('http://localhost:8000/produce', {
+    //   user_id: req.session.userId,
+    //   course_id: courseId
+    // }, {
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   }
+    // });
     res.redirect('/recommendations');
   } catch (err) {
     console.error(err);
@@ -126,7 +127,41 @@ app.post('/enroll', async (req, res) => {
   }
 });
 
+app.get('/products/:courseId', async (req, res) => {
+  const { courseId } = req.params;
+  
+  try {
+    const courseQuery = 'SELECT * FROM course WHERE course_id = ?';
+    const courseResult = await client.execute(courseQuery, [courseId], { prepare: true });
 
+    if (courseResult.rows.length === 0) {
+      return res.status(404).send('Product not found');
+    }
+
+    const course = courseResult.rows[0];
+
+    const recRes = await axios.get(`http://localhost:8000/recommendations/${req.session.userId}`);
+    const recommendedCourseIds = recRes.data.recommendedCourses || [];
+
+    const recommendedCourses = [];
+    for (const id of recommendedCourseIds) {
+      const courseQueryRec = 'SELECT * FROM courses WHERE course_id = ?';
+      const recResult = await client.execute(courseQueryRec, [id], { prepare: true });
+      if (recResult.rows.length > 0) {
+        recommendedCourses.push(recResult.rows[0]);
+      }
+    }
+
+    res.render('course_detail', {
+      course,                   
+      recommendedCourses,       
+      userId: req.session.userId
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
