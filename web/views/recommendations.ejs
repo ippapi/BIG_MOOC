@@ -56,7 +56,7 @@
                     <div class="course-card">
                         <div class="course-badge">Recommended</div>
                         <div class="course-header">
-                            <h3><%= course.name %></h3>
+                            <h3><%= course.name_vn %></h3>
                             <span class="course-score"><%= course.score.toFixed(2) %></span>
                         </div>
                         <p class="course-field"><%= course.field %></p>
@@ -85,7 +85,7 @@
                     <% allCourses.forEach(course => { %>
                     <div class="course-card">
                         <div class="course-header">
-                            <h3><%= course.name %></h3>
+                            <h3><%= course.name_vn %></h3>
                         </div>
                         <p class="course-field"><%= course.field %></p>
                         <p class="course-desc"><%= course.about %></p>
