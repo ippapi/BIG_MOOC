@@ -3,7 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Nunito', sans-serif;
 }
 
 body {
@@ -309,6 +309,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    margin-top: 5px;
 }
 
 .course-header h3 {
@@ -402,5 +403,97 @@ body {
     
     .courses-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Cái trang Course Detail á */
+.course-detail-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.course-main {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 3rem;
+}
+
+.course-header h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.course-content {
+    margin-left: 25px;
+    margin-top: 2rem;
+}
+
+.course-description h2 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    margin: 1.5rem 0 1rem;
+}
+
+.course-description p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.course-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.enroll-btn, .back-btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-btn {
+    background: white;
+    color: #f74aa1;
+    border: 1px solid #f74aa1;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: #f5f8ff;
+    transform: translateY(-2px);
+}
+
+.recommended-courses {
+    margin-top: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .course-main {
+        padding: 1.5rem;
+    }
+    
+    .course-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .course-actions {
+        flex-direction: column;
+    }
+    
+    .enroll-btn, .back-btn {
+        width: 100%;
+        justify-content: center;
     }
 }

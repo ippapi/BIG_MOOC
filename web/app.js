@@ -98,6 +98,59 @@ app.get('/recommendations', async (req, res) => {
   }
 });
 
+app.get('/course/:id', async (req, res) => {
+  if (!req.session.userId) {
+    return res.redirect('/login');
+  }
+  try {
+    // Thông tin chi tiết của cái course
+    const courseQuery = 'SELECT * FROM courses WHERE course_id = ?';
+    const courseResult = await client.execute(courseQuery, [req.params.id], { prepare: true });
+    if (courseResult.rows.length === 0) {
+      return res.status(404).send('Course not found');
+    }
+    const course = courseResult.rows[0];
+
+    // Lấy đề xuất TOP 9 (có thể là làm cách khác hiển thị đó)
+    const recommendationsQuery = `
+      SELECT course_id, score 
+      FROM recommendations 
+      WHERE user_id = ? 
+      ORDER BY score DESC 
+      LIMIT 9`;
+    const recommendationsResult = await client.execute(recommendationsQuery, 
+      [req.session.userId], 
+      { prepare: true });
+
+    // Thông tin chi tiết các khóa học đề xuất
+    const recommendedCourses = [];
+    for (const row of recommendationsResult.rows) {
+      if (row.course_id.toString() !== req.params.id) { 
+        const recCourseQuery = 'SELECT * FROM courses WHERE course_id = ?';
+        const recCourseResult = await client.execute(recCourseQuery, [row.course_id], { prepare: true });
+        recommendedCourses.push({
+          ...recCourseResult.rows[0],
+          score: row.score
+        });
+      }
+    }
+
+    // Lấy tất cả khóa học 
+    const allCoursesQuery = 'SELECT * FROM courses';
+    const allCoursesResult = await client.execute(allCoursesQuery);
+
+    res.render('course-detail', {
+      userId: req.session.userId,
+      course,
+      recommendedCourses,
+      allCourses: allCoursesResult.rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
 app.post('/enroll', async (req, res) => {
   if (!req.session.userId) {
     return res.redirect('/login');
@@ -106,7 +159,7 @@ app.post('/enroll', async (req, res) => {
   const { courseId } = req.body;
   
   try {
-    // Thêm code đăng kí khóa học rồi cập nhật ở đây
+    // Thêm cí code đăng kí khóa học rồi cập nhật ở đây
     res.redirect('/recommendations');
   } catch (err) {
     console.error(err);
@@ -118,3 +171,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

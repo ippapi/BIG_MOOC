@@ -12,3 +12,16 @@ function openTab(evt, tabName) {
     document.getElementById(tabName).classList.add("active");
     evt.currentTarget.classList.add("active");
 }
+
+app.post('/enroll', async (req, res) => {
+    if (!req.session.userId) {
+      return res.redirect('/login');
+    }
+    const { courseId } = req.body;
+    try {
+      res.redirect(`/course/${courseId}`);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error');
+    }
+  });
