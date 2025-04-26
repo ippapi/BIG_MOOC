@@ -8,6 +8,7 @@ conf = {'bootstrap.servers': "kafka:9092",
         'client.id': socket.gethostname()}
 producer = Producer(conf)
 
+user_recommendations = {}
 class Interaction(BaseModel):
     user_id: int
     course_id: int
@@ -26,5 +27,18 @@ async def produce(interaction: Interaction):
 @app.post("/receive")
 async def receive_data(request: Request):
     data = await request.json()
+    user_id = data.get("user_id")
+    top5_courses = data.get("top5_courses")
+
+    if user_id and top5_courses:
+        user_recommendations[user_id] = top5_courses
     print("Received data via ngrok:", data)
     return {"status": "received"}
+
+@app.get("/recommendations/{user_id}")
+async def get_recommendations(user_id: str):
+    user_data = user_recommendations.get(user_id)
+    if user_data:
+        return {"recommendedCourses": user_data["top5_courses"]}
+    else:
+        return {"recommendedCourses": []}

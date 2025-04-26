@@ -4,6 +4,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const cassandra = require('cassandra-driver');
 const path = require('path');
+const axios = require('axios');
 
 const app = express();
 
@@ -104,15 +105,28 @@ app.post('/enroll', async (req, res) => {
   }
 
   const { courseId } = req.body;
-  
+
   try {
-    // Thêm code đăng kí khóa học rồi cập nhật ở đây
+    const query = 'INSERT INTO user_course (user_id, course_id, enroll_time) VALUES (?, ?, ?)';
+    const params = [req.session.userId, courseId, new Date()];
+    await client.execute(query, params, { prepare: true });
+
+    await axios.post('http://localhost:8000/produce', {
+      user_id: req.session.userId,
+      course_id: courseId
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
     res.redirect('/recommendations');
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
   }
 });
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
