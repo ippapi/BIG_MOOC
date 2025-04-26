@@ -1,4 +1,5 @@
 import os
+import csv
 import torch
 import torch.nn as nn
 import socket
@@ -14,6 +15,7 @@ from pretrain_model.utils.model import SASREC
 from pretrain_model.utils.distributed_data_utils import data_retrieval
 
 ngrok_static_domain = os.environ["NGROK_STATIC_DOMAIN"]
+
 class DPP_Worker:
     def __init__(self, local_rank):
         dist.init_process_group(
@@ -79,12 +81,13 @@ class DPP_Worker:
             if predictions.ndim == 1:
                 top5_idx = predictions.argsort()[:5]
                 top5_courses = [predict_courses[i] for i in top5_idx]
+                mapped_top5_courses = [course_mapping.get(str(course_id), 0) for course_id in top5_courses]
             else:
                 raise ValueError(f"Expected 1D predictions, got shape: {predictions.shape}")
 
-            print(f"RANK {self.local_rank}: Top-5 predicted courses: {top5_courses}")
+            print(f"RANK {self.local_rank}: Top-5 predicted courses: {mapped_top5_courses}")
 
-        return loss.item(), top5_courses
+        return loss.item(), mapped_top5_courses
     
     def handle_connection(self, client_socket):
         with client_socket:
@@ -99,7 +102,7 @@ class DPP_Worker:
                 loss, top5_course_ids = self.process_sample(data)
 
                 self.send_result_back_to_local({
-                    "user_id": data["user_id"],
+                    "user_id": user_mapping.get(str(data["user_id"]), "C_0"),
                     "top5_courses": top5_course_ids,
                     "loss": loss
                 })
@@ -125,6 +128,20 @@ class DPP_Worker:
         dist.destroy_process_group()
 
 if __name__ == "__main__":
+    course_mapping = {}
+    with open("/content/drive/MyDrive/BIG_MOOC/dataset/course_map.csv", mode="r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) >= 2:
+                course_mapping[row[0].strip()] = row[1].strip()
+    
+    user_mapping = {}
+    with open("/content/drive/MyDrive/BIG_MOOC/dataset/user_map.csv", mode="r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) >= 2:
+                user_mapping[row[0].strip()] = row[1].strip()
+                
     local_rank = int(os.environ["LOCAL_RANK"])
     worker = DPP_Worker(local_rank)
     worker.run()
