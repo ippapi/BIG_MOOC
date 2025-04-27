@@ -4,6 +4,7 @@ require('dotenv').config();
  const bodyParser = require('body-parser');
  const cassandra = require('cassandra-driver');
  const path = require('path');
+ const axios = require('axios');
  
  const app = express();
 
@@ -103,6 +104,18 @@ app.get('/course/:id', async (req, res) => {
     return res.redirect('/login');
   }
   try {
+    try {
+      await axios.post('http://localhost:8000/produce', {
+        user_id: req.session.userId,
+        course_id: req.params.id,
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (axiosError) {
+      console.error('Error sending to Kafka:', axiosError.message);
+    }
     // Thông tin chi tiết của cái course
     const courseQuery = 'SELECT * FROM courses WHERE course_id = ?';
     const courseResult = await client.execute(courseQuery, [req.params.id], { prepare: true });
@@ -110,29 +123,28 @@ app.get('/course/:id', async (req, res) => {
       return res.status(404).send('Course not found');
     }
     const course = courseResult.rows[0];
-
-    // Lấy đề xuất TOP 9 (có thể là làm cách khác hiển thị đó)
-    const recommendationsQuery = `
-      SELECT course_id, score 
-      FROM recommendations 
-      WHERE user_id = ? 
-      ORDER BY score DESC 
-      LIMIT 9`;
-    const recommendationsResult = await client.execute(recommendationsQuery, 
-      [req.session.userId], 
-      { prepare: true });
-
-    // Thông tin chi tiết các khóa học đề xuất
     const recommendedCourses = [];
-    for (const row of recommendationsResult.rows) {
-      if (row.course_id.toString() !== req.params.id) { 
-        const recCourseQuery = 'SELECT * FROM courses WHERE course_id = ?';
-        const recCourseResult = await client.execute(recCourseQuery, [row.course_id], { prepare: true });
-        recommendedCourses.push({
-          ...recCourseResult.rows[0],
-          score: row.score
-        });
+
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));  
+    
+      const recRes = await axios.get(`http://localhost:8000/recommendations/${req.session.userId}`);
+      const recommendedCourseIds = recRes.data.recommendedCourses || [];
+    
+      for (const id of recommendedCourseIds) {
+        try {
+          const courseQueryRec = 'SELECT * FROM courses WHERE course_id = ?';
+          const recResult = await client.execute(courseQueryRec, [id], { prepare: true });
+          if (recResult.rows.length > 0) {
+            recommendedCourses.push(recResult.rows[0]);
+          }
+        } catch (dbError) {
+          console.error(`Error fetching course ${id}:`, dbError.message);
+        }
       }
+    } catch (axiosError) {
+      console.error('Error fetching recommendations:', axiosError.message);
     }
 
     // Lấy tất cả khóa học 
@@ -158,63 +170,29 @@ app.post('/enroll', async (req, res) => {
 
   const { courseId } = req.body;
 
-  try {
-    // Code bạn làm ở đây đừng có xóa, chạy được á.
-    // const query = 'INSERT INTO user_course (user_id, course_id, enroll_time) VALUES (?, ?, ?)';
-    // const params = [req.session.userId, courseId, new Date()];
-    // await client.execute(query, params, { prepare: true });
+  // try {
+  //   // Code bạn làm ở đây đừng có xóa, chạy được á.
+  //   // const query = 'INSERT INTO user_course (user_id, course_id, enroll_time) VALUES (?, ?, ?)';
+  //   // const params = [req.session.userId, courseId, new Date()];
+  //   // await client.execute(query, params, { prepare: true });
 
-    // await axios.post('http://localhost:8000/produce', {
-    //   user_id: req.session.userId,
-    //   course_id: courseId
-    // }, {
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   }
-    // });
-    res.redirect('/recommendations');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
-  }
-});
-
-app.get('/products/:courseId', async (req, res) => {
-  const { courseId } = req.params;
-  
-  try {
-    // Thêm cí code đăng kí khóa học rồi cập nhật ở đây
-    res.redirect('/recommendations');
-//     const courseQuery = 'SELECT * FROM course WHERE course_id = ?';
-//     const courseResult = await client.execute(courseQuery, [courseId], { prepare: true });
-
-//     if (courseResult.rows.length === 0) {
-//       return res.status(404).send('Product not found');
-//     }
-
-//     const course = courseResult.rows[0];
-
-//     const recRes = await axios.get(`http://localhost:8000/recommendations/${req.session.userId}`);
-//     const recommendedCourseIds = recRes.data.recommendedCourses || [];
-
-//     const recommendedCourses = [];
-//     for (const id of recommendedCourseIds) {
-//       const courseQueryRec = 'SELECT * FROM courses WHERE course_id = ?';
-//       const recResult = await client.execute(courseQueryRec, [id], { prepare: true });
-//       if (recResult.rows.length > 0) {
-//         recommendedCourses.push(recResult.rows[0]);
-//       }
-//     }
-
-//     res.render('course_detail', {
-//       course,                   
-//       recommendedCourses,       
-//       userId: req.session.userId
-//     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
-  }
+  //   // try {
+  //   //   await axios.post('http://localhost:8000/produce', {
+  //   //     user_id: req.session.userId,
+  //   //     course_id: courseId
+  //   //   }, {
+  //   //     headers: {
+  //   //       'Content-Type': 'application/json'
+  //   //     }
+  //   //   });
+  //   // } catch (axiosError) {
+  //   //   console.error('Error sending to Kafka:', axiosError.message);
+  //   // }
+  //   // res.redirect(`/course/${courseId}`);
+  // } catch (err) {
+  //   console.error(err);
+  //   res.status(500).send('Server error');
+  // }
 });
 
 const PORT = process.env.PORT || 3000;

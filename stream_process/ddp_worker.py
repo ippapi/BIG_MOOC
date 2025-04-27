@@ -133,14 +133,14 @@ if __name__ == "__main__":
         reader = csv.reader(file)
         for row in reader:
             if len(row) >= 2:
-                course_mapping[row[0].strip()] = row[1].strip()
+                course_mapping[row[1].strip()] = row[0].strip()
     
     user_mapping = {}
     with open("/content/drive/MyDrive/BIG_MOOC/dataset/user_map.csv", mode="r") as file:
         reader = csv.reader(file)
         for row in reader:
             if len(row) >= 2:
-                user_mapping[row[0].strip()] = row[1].strip()
+                user_mapping[row[1].strip()] = row[0].strip()
                 
     local_rank = int(os.environ["LOCAL_RANK"])
     worker = DPP_Worker(local_rank)

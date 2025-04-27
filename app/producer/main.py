@@ -10,8 +10,8 @@ producer = Producer(conf)
 
 user_recommendations = {}
 class Interaction(BaseModel):
-    user_id: int
-    course_id: int
+    user_id: str
+    course_id: str
 
 @app.post("/produce")
 async def produce(interaction: Interaction):
