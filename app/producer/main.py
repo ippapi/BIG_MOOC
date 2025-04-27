@@ -39,6 +39,6 @@ async def receive_data(request: Request):
 async def get_recommendations(user_id: str):
     user_data = user_recommendations.get(user_id)
     if user_data:
-        return {"recommendedCourses": user_data["top5_courses"]}
+        return {"recommendedCourses": user_data}
     else:
         return {"recommendedCourses": []}

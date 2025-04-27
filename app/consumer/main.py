@@ -10,7 +10,7 @@ conf = {'bootstrap.servers': "kafka:9092",
 
 consumer = Consumer(conf)
 running = True
-colab_url = "https://e4e8-146-148-61-57.ngrok-free.app/receive"  # Change over time, broke hahaha
+colab_url = "https://2d40-34-80-168-50.ngrok-free.app/receive"  # Change over time, broke hahaha
 
 def basic_consume_loop(consumer, topics):
     print("Consumer is running and trying to subscribe to topics:", topics)

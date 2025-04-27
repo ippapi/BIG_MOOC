@@ -65,10 +65,9 @@
                         <div class="course-badge">Recommended</div>
                         <div class="course-header">
                             <h3><%= course.name_vn %></h3>
-                            <span class="course-score"><%= course.score.toFixed(2) %></span>
                         </div>
                         <p class="course-field"><%= course.field %></p>
-                        <p class="course-desc"><%= course.about %></p>
+                        <p class="course-desc"><%= course.about_vn %></p>
                         <form action="/course/<%= course.course_id %>" method="GET" class="course-actions">
                             <button type="submit" class="enroll-btn">
                                 Enroll

@@ -127,7 +127,7 @@ app.get('/course/:id', async (req, res) => {
 
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));  
+      await new Promise(resolve => setTimeout(resolve, 1500));  
     
       const recRes = await axios.get(`http://localhost:8000/recommendations/${req.session.userId}`);
       const recommendedCourseIds = recRes.data.recommendedCourses || [];
@@ -147,15 +147,10 @@ app.get('/course/:id', async (req, res) => {
       console.error('Error fetching recommendations:', axiosError.message);
     }
 
-    // Lấy tất cả khóa học 
-    const allCoursesQuery = 'SELECT * FROM courses';
-    const allCoursesResult = await client.execute(allCoursesQuery);
-
     res.render('course-detail', {
       userId: req.session.userId,
       course,
       recommendedCourses,
-      allCourses: allCoursesResult.rows
     });
   } catch (err) {
     console.error(err);
