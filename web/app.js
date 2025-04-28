@@ -85,7 +85,7 @@ app.get('/recommendations', async (req, res) => {
       });
     }
     // Lấy tất cả khóa học
-    const allCoursesQuery = 'SELECT * FROM courses';
+    const allCoursesQuery = 'SELECT * FROM courses where is_trained = true limit 2828';
     const allCoursesResult = await client.execute(allCoursesQuery);
 
     res.render('recommendations', {
@@ -125,9 +125,8 @@ app.get('/course/:id', async (req, res) => {
     const course = courseResult.rows[0];
     const recommendedCourses = [];
 
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));  
+      await new Promise(resolve => setTimeout(resolve, 3000));  
     
       const recRes = await axios.get(`http://localhost:8000/recommendations/${req.session.userId}`);
       const recommendedCourseIds = recRes.data.recommendedCourses || [];
