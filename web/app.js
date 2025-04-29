@@ -85,7 +85,7 @@ app.get('/recommendations', async (req, res) => {
       });
     }
     // Lấy tất cả khóa học
-    const allCoursesQuery = 'SELECT * FROM courses where is_trained = true limit 2828';
+    const allCoursesQuery = 'SELECT * FROM courses';
     const allCoursesResult = await client.execute(allCoursesQuery);
 
     res.render('recommendations', {
