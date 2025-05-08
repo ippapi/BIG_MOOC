@@ -9,6 +9,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from utils.model import SASREC
 from utils.distributed_data_utils import *
+from utils.evaluate_utils import *
 
 def str2bool(s):
     if s not in {'false', 'true'}:
@@ -19,6 +20,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', default=128, type=int)
     parser.add_argument('--learning_rate', default=0.001, type=float)
+    parser.add_argument('--mode', choices=["train", "product"],default="train", type=str)
     parser.add_argument('--sequence_size', default=10, type=int)
     parser.add_argument('--embedding_dims', default=50, type=int)
     parser.add_argument('--num_blocks', default=2, type=int)
@@ -41,7 +43,7 @@ def main():
     )
     device = torch.device('cpu')
 
-    dataset = data_retrieval()
+    dataset = data_retrieval(mode = args.mode)
     [train, _, _, num_users, num_courses] = dataset
 
     sampler = DistributedSampler(train, num_users, num_courses, batch_size = args.batch_size, sequence_size = args.sequence_size, world_size = world_size, rank = local_rank)
@@ -66,6 +68,8 @@ def main():
     adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.98))
 
     num_batch = (len(train) - 1) // args.batch_size + 1
+    total_time = 0.0
+    t0 = time.time()
 
     for epoch in range(epoch_start_idx, args.num_epochs + 1):
         sampler.set_epoch(epoch)
@@ -97,14 +101,28 @@ def main():
 
                 pbar.set_postfix({"loss": f"{loss.item():.4f}"})
                 pbar.update(1)
+
+        
     try:
         if local_rank == 0:
             final_model_path = os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", "SASRec.final.pth")
             torch.save(model.state_dict(), final_model_path)
             print(f"Final model saved at {final_model_path}")
+            model.eval()
+            t1 = time.time() - t0
+            total_time += t1
+            print('Evaluating')
+            for k in [10]:
+                test_result = evaluate(model, dataset, sequence_size = 10, k = k)
+                val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
+                print('epoch:%d, time: %f(s), valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
+                    (epoch, total_time, k, val_result["NDCG@k"], k, val_result["Hit@k"], k, val_result["Recall@k"],
+                    k, test_result["NDCG@k"], k, test_result["Hit@k"], k, test_result["Recall@k"]))
+
+            t0 = time.time()
     except:
         pass
-
+    dist.barrier()
     dist.destroy_process_group()
 
 if __name__ == '__main__':

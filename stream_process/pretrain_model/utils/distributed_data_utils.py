@@ -5,7 +5,7 @@ from collections import defaultdict
 import torch
 from torch.utils.data import Sampler
 
-def data_retrieval():
+def data_retrieval(mode = "train"):
     num_users = 0
     num_courses = 0
     train = defaultdict(list)
@@ -28,16 +28,21 @@ def data_retrieval():
         df = pd.read_csv(path)
         for _, row in df.iterrows():
             user = int(row['user'])
-            course = int(row[label_column])
+            course = int(row[label_column]) + 1
             storage[user].append(course)
             num_users = max(num_users, user)
             num_courses = max(num_courses, course)
 
-    load_train('/content/drive/MyDrive/BIG_MOOC/dataset/train_df.csv', train)
-    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', train)
-    load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', train)
+    if mode == "train":
+        load_train('/content/drive/MyDrive/BIG_MOOC/dataset/train_df.csv', train)
+        load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', validation)
+        load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', test)
+    elif mode == "product":
+        load_train('/content/drive/MyDrive/BIG_MOOC/dataset/train_df.csv', train)
+        load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', train)
+        load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', train)
 
-    return [train, validation, test, num_users + 1, num_courses + 1]
+    return [train, validation, test, num_users + 1, num_courses]
 
 class DistributedSampler(Sampler):
     def __init__(self, users_interacts, num_users=99970, num_courses=2827, batch_size=64, sequence_size=10, world_size=2, rank=0):

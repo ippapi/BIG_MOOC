@@ -80,7 +80,7 @@ class DPP_Worker:
 
             if predictions.ndim == 1:
                 top5_idx = predictions.argsort()[:5]
-                top5_courses = [predict_courses[i] for i in top5_idx]
+                top5_courses = [predict_courses[i] - 1 for i in top5_idx]
                 mapped_top5_courses = [course_mapping.get(str(course_id), 0) for course_id in top5_courses]
             else:
                 raise ValueError(f"Expected 1D predictions, got shape: {predictions.shape}")
