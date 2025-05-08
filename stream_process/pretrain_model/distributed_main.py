@@ -9,7 +9,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from utils.model import SASREC
 from utils.distributed_data_utils import *
-from utils.distributed_evaluate_utils import *
 
 def str2bool(s):
     if s not in {'false', 'true'}:
@@ -108,18 +107,6 @@ def main():
             final_model_path = os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", "SASRec.final.pth")
             torch.save(model.state_dict(), final_model_path)
             print(f"Final model saved at {final_model_path}")
-            model.eval()
-            t1 = time.time() - t0
-            total_time += t1
-            print('Evaluating')
-            for k in [10]:
-                test_result = evaluate(model, dataset, sequence_size = 10, k = k)
-                val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
-                print('epoch:%d, time: %f(s), valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
-                    (epoch, total_time, k, val_result["NDCG@k"], k, val_result["Hit@k"], k, val_result["Recall@k"],
-                    k, test_result["NDCG@k"], k, test_result["Hit@k"], k, test_result["Recall@k"]))
-
-            t0 = time.time()
     except:
         pass
 

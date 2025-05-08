@@ -57,8 +57,12 @@ def main():
 
     if args.inference_only:
         model.eval()
-        eval_result = evaluate(model, dataset, sequence_size = 10, k = 10)
-        print('test (NDCG@10: %.4f, Hit@10: %.4f, Recall@10: %4f)' % (eval_result["NDCG@k"], eval_result["Hit@k"], eval_result["Recall@k"]))
+        test_result = evaluate(model, dataset, sequence_size = 10, k = k)
+        val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
+        print('valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
+            (k, val_result["NDCG@k"], k, val_result["Hit@k"], k, val_result["Recall@k"],
+            k, test_result["NDCG@k"], k, test_result["Hit@k"], k, test_result["Recall@k"]))
+        sys.exit()
 
     bce_criterion = torch.nn.BCEWithLogitsLoss()
     adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.98))
