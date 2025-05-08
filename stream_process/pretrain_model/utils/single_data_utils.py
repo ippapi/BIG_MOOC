@@ -30,7 +30,7 @@ def data_retrieval():
         df = pd.read_csv(path)
         for _, row in df.iterrows():
             user = int(row['user'])
-            course = int(row[label_column])
+            course = int(row[label_column]) + 1
             storage[user].append(course)
             num_users = max(num_users, user)
             num_courses = max(num_courses, course)

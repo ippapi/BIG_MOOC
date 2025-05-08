@@ -45,7 +45,7 @@ def data_retrieval(mode = "train"):
     return [train, validation, test, num_users + 1, num_courses]
 
 class DistributedSampler(Sampler):
-    def __init__(self, users_interacts, num_users=99970, num_courses=2827, batch_size=64, sequence_size=10, world_size=2, rank=0):
+    def __init__(self, users_interacts, num_users=99970, num_courses=2828, batch_size=64, sequence_size=10, world_size=2, rank=0):
         super().__init__(users_interacts)
         self.users_interacts = users_interacts
         self.num_users = num_users

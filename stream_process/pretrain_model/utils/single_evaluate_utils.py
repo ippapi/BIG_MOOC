@@ -30,9 +30,9 @@ def evaluate(model, dataset, sequence_size = 10, k = 1):
         interacted_courses.add(0)
         predict_courses = [test[user][0]]
         for _ in range(100):
-            course = np.random.randint(0, num_courses)
+            course = np.random.randint(1, num_courses + 1)
             while course in interacted_courses:
-                course = np.random.randint(0, num_courses)
+                course = np.random.randint(1, num_courses + 1)
             predict_courses.append(course)
 
         predictions = -model.predict(*[np.array(l) for l in [[user], [seq_course], predict_courses]])
@@ -89,9 +89,9 @@ def evaluate_validation(model, dataset, sequence_size = 10, k = 1):
         interacted_courses.add(0)
         predict_courses = [validation[user][0]]
         for _ in range(100):
-            course = np.random.randint(0, num_courses)
+            course = np.random.randint(1, num_courses + 1)
             while course in interacted_courses:
-                course = np.random.randint(0, num_courses)
+                course = np.random.randint(1, num_courses + 1)
             predict_courses.append(course)
 
         predictions = -model.predict(*[np.array(l) for l in [[user], [seq_course], predict_courses]])
