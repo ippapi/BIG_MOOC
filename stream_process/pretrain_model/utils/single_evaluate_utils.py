@@ -1,6 +1,7 @@
 import sys
 import copy
 import numpy as np
+import random
 
 def evaluate(model, dataset, sequence_size = 10, k = 1):
     [train, validation, test, num_users, num_courses] = copy.deepcopy(dataset)
@@ -29,11 +30,13 @@ def evaluate(model, dataset, sequence_size = 10, k = 1):
         interacted_courses = set(train[user])
         interacted_courses.add(0)
         predict_courses = [test[user][0]]
-        for _ in range(100):
-            course = np.random.randint(1, num_courses + 1)
-            while course in interacted_courses:
-                course = np.random.randint(1, num_courses + 1)
-            predict_courses.append(course)
+
+        all_courses = set(range(1, num_courses + 1))
+        available_courses = list(all_courses - interacted_courses - set(predict_courses))
+        num_needed = 100 - len(predict_courses)
+        predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
+
+        print(predict_courses)
 
         predictions = -model.predict(*[np.array(l) for l in [[user], [seq_course], predict_courses]])
         predictions = predictions[0]
@@ -88,11 +91,13 @@ def evaluate_validation(model, dataset, sequence_size = 10, k = 1):
         interacted_courses = set(train[user])
         interacted_courses.add(0)
         predict_courses = [validation[user][0]]
-        for _ in range(100):
-            course = np.random.randint(1, num_courses + 1)
-            while course in interacted_courses:
-                course = np.random.randint(1, num_courses + 1)
-            predict_courses.append(course)
+
+        all_courses = set(range(1, num_courses + 1))
+        available_courses = list(all_courses - interacted_courses - set(predict_courses))
+        num_needed = 100 - len(predict_courses)
+        predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
+
+        print(predict_courses)
 
         predictions = -model.predict(*[np.array(l) for l in [[user], [seq_course], predict_courses]])
         predictions = predictions[0]

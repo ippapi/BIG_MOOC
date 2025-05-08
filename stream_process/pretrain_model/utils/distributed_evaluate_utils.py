@@ -2,6 +2,7 @@ import sys
 import copy
 import torch
 import torch.distributed as dist
+import random
 
 def evaluate(model, dataset, sequence_size=10, k=1, device='cpu'):
     [train, validation, test, num_users, num_courses] = copy.deepcopy(dataset)
@@ -32,11 +33,12 @@ def evaluate(model, dataset, sequence_size=10, k=1, device='cpu'):
         interacted_courses.add(0)
         predict_courses = [test[user][0]]
 
-        while len(predict_courses) < 100:
-            course = torch.randint(1, num_courses + 1, (1,)).item()
-            if course not in interacted_courses:
-                predict_courses.append(course)
-                print(predict_courses)
+        all_courses = set(range(1, num_courses + 1))
+        available_courses = list(all_courses - interacted_courses - set(predict_courses))
+        num_needed = 100 - len(predict_courses)
+        predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
+
+        print(predict_courses)
 
         user_tensor = torch.tensor([user], dtype=torch.long, device=device)
         seq_tensor = seq_course.unsqueeze(0).to(device)
@@ -104,11 +106,12 @@ def evaluate_validation(model, dataset, sequence_size=10, k=1, device='cpu'):
         interacted_courses.add(0)
         predict_courses = [validation[user][0]]
 
-        while len(predict_courses) < 100:
-            course = torch.randint(1, num_courses + 1, (1,)).item()
-            if course not in interacted_courses:
-                predict_courses.append(course)
-                print(predict_courses)
+        all_courses = set(range(1, num_courses + 1))
+        available_courses = list(all_courses - interacted_courses - set(predict_courses))
+        num_needed = 100 - len(predict_courses)
+        predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
+
+        print(predict_courses)
 
         user_tensor = torch.tensor([user], dtype=torch.long, device=device)
         seq_tensor = seq_course.unsqueeze(0).to(device)
