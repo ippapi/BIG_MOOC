@@ -9,7 +9,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from utils.model import SASREC
 from utils.distributed_data_utils import *
-from utils.evaluate_utils import *
+from utils.distributed_evaluate_utils import *
 
 def str2bool(s):
     if s not in {'false', 'true'}:
@@ -122,6 +122,7 @@ def main():
             t0 = time.time()
     except:
         pass
+
     dist.barrier()
     dist.destroy_process_group()
 
