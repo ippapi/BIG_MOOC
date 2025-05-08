@@ -47,7 +47,7 @@
             <!-- Tab Content -->
             <div id="recommendations" class="tab-content active">
                 <div class="section-header">
-                    <h2>Top 10 Recommended Courses For You</h2>
+                    <h2>Top 9 Recommended Courses For You</h2>
                     <p>Based on your learning preferences and history</p>
                 </div>
                 
@@ -60,10 +60,10 @@
                             <span class="course-score"><%= course.score.toFixed(2) %></span>
                         </div>
                         <p class="course-field"><%= course.field %></p>
-                        <p class="course-desc"><%= course.about %></p>
+                        <p class="course-desc"><%= course.about_vn %></p>
                         <form action="/course/<%= course.course_id %>" method="GET" class="course-actions">
                             <button type="submit" class="enroll-btn">
-                                Enroll
+                                See details
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M5 12h14M12 5l7 7-7 7"></path>
                                 </svg>
@@ -74,14 +74,26 @@
                 </div>
             </div>
             
-            <div id="allCourses" class="tab-content">
+            <div id="allCourses" class="tabcontent">
                 <div class="section-header">
+                  <div class="search-container">
                     <h2>All Available Courses</h2>
-                    <p>Explore our complete course catalog</p>
+                    <form action="/search" method="GET" class="search-form">
+                      <input type="text" name="q" placeholder="Tìm kiếm khóa học..." value="<%= searchTerm || '' %>">
+                      <button type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      </button>
+                    </form>
+                  </div>
+                  <p>Explore our complete course catalog</p>
                 </div>
                 
+                <!-- Danh sách khóa học -->
                 <div class="courses-grid">
-                    <% allCourses.forEach(course => { %>
+                  <% allCourses.forEach(course => { %>
                     <div class="course-card">
                         <div class="course-header">
                             <h3><%= course.name_vn %></h3>
@@ -90,16 +102,16 @@
                         <p class="course-desc"><%= course.about_vn %></p>
                         <form action="/course/<%= course.course_id %>" method="GET" class="course-actions">
                             <button type="submit" class="enroll-btn">
-                                Enroll
+                                See Detail
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M5 12h14M12 5l7 7-7 7"></path>
                                 </svg>
                             </button>
                         </form>
                     </div>
-                    <% }); %>
+                  <% }); %>
                 </div>
-            </div>
+              </div>
         </main>
     </div>
 

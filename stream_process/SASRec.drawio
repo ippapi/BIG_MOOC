@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 OPR/117.0.0.0" version="26.2.15" pages="2">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 OPR/118.0.0.0" version="26.2.15" pages="2">
   <diagram id="GjEPTVmmW27XbaL3LZDT" name="Streaming Rec System">
     <mxGraphModel dx="2218" dy="1175" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -233,7 +233,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="SASRec Model" id="ycd4AqWMqtb6JNKQn1Xa">
-    <mxGraphModel dx="2218" dy="1175" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1400" dy="644" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -788,7 +788,7 @@
           <mxGeometry x="61" y="89" width="43" height="26" as="geometry" />
         </mxCell>
         <mxCell id="j9KJ5yuXrT_S9AdhNe95-27" value="Dropout" style="shape=singleArrow;whiteSpace=wrap;html=1;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;" parent="1" vertex="1">
-          <mxGeometry x="1657" y="359" width="72" height="37" as="geometry" />
+          <mxGeometry x="1657" y="359" width="82" height="37" as="geometry" />
         </mxCell>
         <mxCell id="j9KJ5yuXrT_S9AdhNe95-30" value="" style="shape=cross;whiteSpace=wrap;html=1;rotation=45;" parent="1" vertex="1">
           <mxGeometry x="1931" y="371.5" width="15" height="15" as="geometry" />

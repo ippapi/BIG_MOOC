@@ -59,19 +59,20 @@ app.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
+
 app.get('/recommendations', async (req, res) => {
   if (!req.session.userId) {
     return res.redirect('/login');
   }
 
   try {
-    // Lấy top 10 khóa học đề xuất
+    // Lấy top 9 khóa học đề xuất
     const recommendationsQuery = `
       SELECT course_id, score 
       FROM recommendations 
       WHERE user_id = ? 
       ORDER BY score DESC 
-      LIMIT 10`;
+      LIMIT 9`;
     const recommendationsResult = await client.execute(recommendationsQuery, [req.session.userId], { prepare: true });
 
     // Lấy thông tin chi tiết các khóa học đề xuất
@@ -84,14 +85,16 @@ app.get('/recommendations', async (req, res) => {
         score: row.score
       });
     }
+
     // Lấy tất cả khóa học
-    const allCoursesQuery = 'SELECT * FROM courses where is_trained = true limit 2828';
+    const allCoursesQuery = 'SELECT * FROM courses';
     const allCoursesResult = await client.execute(allCoursesQuery);
 
     res.render('recommendations', {
       userId: req.session.userId,
       recommendedCourses,
-      allCourses: allCoursesResult.rows
+      allCourses: allCoursesResult.rows,
+      searchTerm: req.query.q || '' 
     });
   } catch (err) {
     console.error(err);
@@ -116,6 +119,7 @@ app.get('/course/:id', async (req, res) => {
     } catch (axiosError) {
       console.error('Error sending to Kafka:', axiosError.message);
     }
+
     // Thông tin chi tiết của cái course
     const courseQuery = 'SELECT * FROM courses WHERE course_id = ?';
     const courseResult = await client.execute(courseQuery, [req.params.id], { prepare: true });
@@ -154,6 +158,30 @@ app.get('/course/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
+  }
+});
+
+//cái search tìm khóa học
+app.get('/search', async (req, res) => {
+  if (!req.session.userId) return res.redirect('/login');
+
+  try {
+    const searchTerm = (req.query.q || '').toLowerCase();
+
+    const result = await client.execute('SELECT * FROM courses');
+    const filtered = result.rows.filter(course =>
+      course.name.toLowerCase().includes(searchTerm) ||
+      course.name_vn.toLowerCase().includes(searchTerm)
+    );
+
+    res.render('search-results', {
+      userId: req.session.userId,
+      courses: filtered,
+      searchTerm
+    });
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).send('Lỗi tìm kiếm');
   }
 });
 
