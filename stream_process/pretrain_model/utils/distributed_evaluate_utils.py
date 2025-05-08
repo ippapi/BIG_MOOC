@@ -12,8 +12,7 @@ def evaluate(model, dataset, sequence_size=10, k=1, device='cpu'):
     RECALL = 0.0
     valid_user = 0.0
 
-    # users = range(0, num_users)
-    users = range(0, 1)
+    users = range(0, num_users)
 
     for user in users:
         if len(train[user]) < 1 or len(test[user]) < 1:
@@ -37,8 +36,6 @@ def evaluate(model, dataset, sequence_size=10, k=1, device='cpu'):
         available_courses = list(all_courses - interacted_courses - set(predict_courses))
         num_needed = 100 - len(predict_courses)
         predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
-
-        print(predict_courses)
 
         user_tensor = torch.tensor([user], dtype=torch.long, device=device)
         seq_tensor = seq_course.unsqueeze(0).to(device)
@@ -111,8 +108,6 @@ def evaluate_validation(model, dataset, sequence_size=10, k=1, device='cpu'):
         num_needed = 100 - len(predict_courses)
         predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
 
-        print(predict_courses)
-
         user_tensor = torch.tensor([user], dtype=torch.long, device=device)
         seq_tensor = seq_course.unsqueeze(0).to(device)
         items_tensor = torch.tensor(predict_courses, dtype=torch.long, device=device)
@@ -131,10 +126,6 @@ def evaluate_validation(model, dataset, sequence_size=10, k=1, device='cpu'):
             NDCG += 1 / torch.log2(torch.tensor(rank + 2.0)).item()
             HIT += 1
             RECALL += 1
-
-        if valid_user % 10000 == 0:
-            print('.', end="")
-            sys.stdout.flush()
 
     if dist.is_initialized():
         metrics = torch.tensor([NDCG, HIT, RECALL, valid_user], dtype=torch.float32, device=device)
