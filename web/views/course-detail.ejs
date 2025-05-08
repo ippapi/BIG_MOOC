@@ -25,6 +25,15 @@
         <main class="course-detail-container">
             <!-- Course Detail Section -->
             <section class="course-main">
+                <div class="course-actions">
+                    <a href="/recommendations" class="back-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                        </svg>
+                        Back to Courses
+                    </a>
+                </div>
+
                 <div class="course-header">
                     <h1><%= course.name_vn %></h1>
                     <p class="course-field"><%= course.name %></p>
@@ -41,14 +50,14 @@
                         <p><%= course.about_vn %></p>
                     </div>
                     
-                    <div class="course-actions">
-                        <a href="/recommendations" class="back-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    <form class="course-actions">
+                        <button type="submit" class="enroll-btn">
+                            Enroll
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 12h14M12 5l7 7-7 7"></path>
                             </svg>
-                            Back to Courses
-                        </a>
-                    </div>
+                        </button>
+                    </form>
                 </div>
             </section>
             
