@@ -39,11 +39,11 @@ def data_retrieval():
     load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/val_df.csv', 'val_label', validation)
     load_single_label_file('/content/drive/MyDrive/BIG_MOOC/dataset/test_df.csv', 'test_label', test)
 
-    return [train, validation, test, num_users + 1, num_courses + 1]
+    return [train, validation, test, num_users + 1, num_courses]
 
 
 class Sampler:
-    def __init__(self, users_interacts, num_users=99970, num_courses=2827, batch_size=64, sequence_size=10):
+    def __init__(self, users_interacts, num_users=99970, num_courses=2828, batch_size=64, sequence_size=10):
         self.users_interacts = users_interacts
         self.num_users = num_users
         self.num_courses = num_courses
@@ -75,7 +75,7 @@ class Sampler:
             seq_course[next_id] = index
             pos_course[next_id] = next_course
             if next_course != 0:
-                neg_course[next_id] = self.random_neq(0, self.num_courses, course_set)
+                neg_course[next_id] = self.random_neq(1, self.num_courses + 1, course_set)
             next_course = index
             next_id -= 1
             if next_id == -1:

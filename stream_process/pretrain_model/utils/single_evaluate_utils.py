@@ -46,7 +46,7 @@ def evaluate(model, dataset, sequence_size = 10, k = 1):
             HIT += 1
             RECALL += 1
 
-        if valid_user % 100 == 0:
+        if valid_user % 10000 == 0:
             print('.', end="")
             sys.stdout.flush()
 
@@ -105,7 +105,7 @@ def evaluate_validation(model, dataset, sequence_size = 10, k = 1):
             HIT += 1
             RECALL += 1
 
-        if valid_user % 100 == 0:
+        if valid_user % 10000 == 0:
             print('.', end="")
             sys.stdout.flush()
 

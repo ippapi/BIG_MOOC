@@ -68,6 +68,8 @@ def main():
     adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, betas=(0.9, 0.98))
 
     num_batch = (len(train) - 1) // args.batch_size + 1
+    total_time = 0.0
+    t0 = time.time()
 
     for epoch in range(epoch_start_idx, args.num_epochs + 1):
         sampler.set_epoch(epoch)
@@ -106,9 +108,22 @@ def main():
             final_model_path = os.path.join("/content/drive/MyDrive/BIG_MOOC/train_dir", "SASRec.final.pth")
             torch.save(model.state_dict(), final_model_path)
             print(f"Final model saved at {final_model_path}")
+            model.eval()
+            t1 = time.time() - t0
+            total_time += t1
+            print('Evaluating')
+            for k in [10]:
+                test_result = evaluate(model, dataset, sequence_size = 10, k = k)
+                val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
+                print('epoch:%d, time: %f(s), valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
+                    (epoch, total_time, k, val_result["NDCG@k"], k, val_result["Hit@k"], k, val_result["Recall@k"],
+                    k, test_result["NDCG@k"], k, test_result["Hit@k"], k, test_result["Recall@k"]))
+
+            t0 = time.time()
     except:
         pass
 
+    dist.barrier()
     dist.destroy_process_group()
 
 if __name__ == '__main__':

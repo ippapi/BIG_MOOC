@@ -89,7 +89,7 @@ class DistributedSampler(Sampler):
             seq_course[next_id] = index
             pos_course[next_id] = next_course
             if next_course != 0:
-                neg_course[next_id] = self.random_neq(0, self.num_courses, course_set)
+                neg_course[next_id] = self.random_neq(1, self.num_courses + 1, course_set)
             next_course = index
             next_id -= 1
             if next_id == -1:
