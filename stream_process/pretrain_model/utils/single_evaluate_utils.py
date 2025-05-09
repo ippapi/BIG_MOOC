@@ -36,8 +36,6 @@ def evaluate(model, dataset, sequence_size = 10, k = 1):
         num_needed = 100 - len(predict_courses)
         predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
 
-        print(predict_courses)
-
         predictions = -model.predict(*[np.array(l) for l in [[user], [seq_course], predict_courses]])
         predictions = predictions[0]
 
@@ -96,8 +94,6 @@ def evaluate_validation(model, dataset, sequence_size = 10, k = 1):
         available_courses = list(all_courses - interacted_courses - set(predict_courses))
         num_needed = 100 - len(predict_courses)
         predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
-
-        print(predict_courses)
 
         predictions = -model.predict(*[np.array(l) for l in [[user], [seq_course], predict_courses]])
         predictions = predictions[0]

@@ -6,9 +6,9 @@ import numpy as np
 from tqdm import tqdm
 from collections import OrderedDict
 
-from utils.single_model import SASREC
-from utils.single_data_utils import *
-from utils.single_evaluate_utils import *
+from utils.model import SASREC
+from utils.distributed_data_utils import *
+from utils.distributed_evaluate_utils import *
 
 def main():
     parser = argparse.ArgumentParser()
@@ -27,6 +27,8 @@ def main():
         new_state_dict[new_key] = v
 
     model.eval()
+    k = 10
+    print("Evaluating")
     test_result = evaluate(model, dataset, sequence_size = 10, k = k)
     val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
     print('valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
