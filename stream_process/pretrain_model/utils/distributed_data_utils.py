@@ -18,6 +18,7 @@ def data_retrieval(mode = "train"):
         for _, row in df.iterrows():
             user = int(row['user'])
             courses = ast.literal_eval(row['feature'])
+            courses = [x + 1 for x in courses]
             storage[user].extend(courses)
             num_users = max(num_users, user)
             if courses:
@@ -76,7 +77,7 @@ class DistributedSampler(Sampler):
 
     def sample(self, user_id):
         while len(self.users_interacts[user_id]) <= 1:
-            user_id = np.random.randint(1, self.num_users + 1)
+            user_id = np.random.randint(0, self.num_users)
 
         seq_course = np.zeros([self.sequence_size], dtype=np.int32)
         pos_course = np.zeros([self.sequence_size], dtype=np.int32)

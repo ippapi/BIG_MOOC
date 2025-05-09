@@ -1,7 +1,6 @@
 import sys
 import copy
 import torch
-import torch.distributed as dist
 import random
 
 def evaluate(model, dataset, sequence_size=10, k=1, device='cpu'):
@@ -34,7 +33,7 @@ def evaluate(model, dataset, sequence_size=10, k=1, device='cpu'):
 
         all_courses = set(range(1, num_courses + 1))
         available_courses = list(all_courses - interacted_courses - set(predict_courses))
-        num_needed = 100 - len(predict_courses)
+        num_needed = 101 - len(predict_courses)
         predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
 
         user_tensor = torch.tensor([user], dtype=torch.long, device=device)
@@ -56,12 +55,6 @@ def evaluate(model, dataset, sequence_size=10, k=1, device='cpu'):
 
         if valid_user % 10000 == 0:
             print('.', end="")
-            sys.stdout.flush()
-
-    if dist.is_initialized():
-        metrics = torch.tensor([NDCG, HIT, RECALL, valid_user], dtype=torch.float32, device=device)
-        dist.all_reduce(metrics, op=dist.ReduceOp.SUM)
-        NDCG, HIT, RECALL, valid_user = metrics.tolist()
 
     if valid_user != 0:
         return {
@@ -105,7 +98,7 @@ def evaluate_validation(model, dataset, sequence_size=10, k=1, device='cpu'):
 
         all_courses = set(range(1, num_courses + 1))
         available_courses = list(all_courses - interacted_courses - set(predict_courses))
-        num_needed = 100 - len(predict_courses)
+        num_needed = 101 - len(predict_courses)
         predict_courses += random.sample(available_courses, min(num_needed, len(available_courses)))
 
         user_tensor = torch.tensor([user], dtype=torch.long, device=device)
@@ -120,17 +113,13 @@ def evaluate_validation(model, dataset, sequence_size=10, k=1, device='cpu'):
         rank = predictions.argsort().argsort()[0].item()
         valid_user += 1
 
-        print(valid_user)
+        if valid_user % 10000 == 0:
+            print('.', end="")
 
         if rank < k:
             NDCG += 1 / torch.log2(torch.tensor(rank + 2.0)).item()
             HIT += 1
             RECALL += 1
-
-    if dist.is_initialized():
-        metrics = torch.tensor([NDCG, HIT, RECALL, valid_user], dtype=torch.float32, device=device)
-        dist.all_reduce(metrics, op=dist.ReduceOp.SUM)
-        NDCG, HIT, RECALL, valid_user = metrics.tolist()
 
     if valid_user != 0:
         return {

@@ -26,11 +26,13 @@ def main():
         new_key = k.replace("module.", "") if k.startswith("module.") else k
         new_state_dict[new_key] = v
 
+    model.load_state_dict(new_state_dict)
+
     model.eval()
     k = 10
     print("Evaluating")
-    test_result = evaluate(model, dataset, sequence_size = 10, k = k)
-    val_result = evaluate_validation(model, dataset, sequence_size = 10, k = k)
+    test_result = evaluate(model, dataset, sequence_size = 15, k = k)
+    val_result = evaluate_validation(model, dataset, sequence_size = 15, k = k)
     print('valid (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f), test (NDCG@%d: %.4f, Hit@%d: %.4f, Recall@%d: %.4f)' %
         (k, val_result["NDCG@k"], k, val_result["Hit@k"], k, val_result["Recall@k"],
         k, test_result["NDCG@k"], k, test_result["Hit@k"], k, test_result["Recall@k"]))
