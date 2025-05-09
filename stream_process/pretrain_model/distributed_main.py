@@ -27,7 +27,7 @@ def main():
     parser.add_argument('--num_heads', default=1, type=int)
     parser.add_argument('--dropout_rate', default=0.2, type=float)
     parser.add_argument('--l2_emb', default=0.0, type=float)
-    parser.add_argument('--model_version', default=0.0, type=float)
+    parser.add_argument('--model_version', default="", type=str)
     parser.add_argument('--device', default='cpu', type=str)
     
     rank = int(os.environ["RANK"])
