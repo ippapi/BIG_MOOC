@@ -55,7 +55,7 @@ def sample_negative_item_for_user(user_id, users_interacts, num_courses, sequenc
         seq_course[next_id] = index
         pos_course[next_id] = next_course
         if next_course != 0:
-            neg_course[next_id] = random_neq(0, num_courses, course_set)
+            neg_course[next_id] = random_neq(1, num_courses + 1, course_set)
         next_course = index
         next_id -= 1
         if next_id == -1:
