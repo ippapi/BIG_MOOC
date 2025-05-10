@@ -24,8 +24,8 @@ class DPP_Worker:
         )
         self.local_rank = local_rank
         self.device = "cpu"
-        model = SASREC(99970, 2828, self.device, embedding_dims = 64, sequence_size=15, dropout_rate=0.2).to(self.device)
-        state_dict = torch.load("/content/drive/MyDrive/BIG_MOOC/train_dir/SASRec.final.pth", map_location=self.device)
+        model = SASREC(99970, 2828, self.device, embedding_dims = 128, sequence_size=15, dropout_rate=0.2).to(self.device)
+        state_dict = torch.load("/content/drive/MyDrive/BIG_MOOC/train_dir/SASRec_v_s15_e128_train.final.pth", map_location=self.device)
 
         new_state_dict = OrderedDict()
         for k, v in state_dict.items():
