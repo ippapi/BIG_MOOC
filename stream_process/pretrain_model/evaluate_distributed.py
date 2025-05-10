@@ -14,11 +14,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--state_dict_path', default=None, type=str)
+    parser.add_argument('--embedding_dims', default=64, type=int)
+    parser.add_argument('--sequence_size', default=5, type=int)
     args = parser.parse_args()
 
     dataset = data_retrieval(mode = "train")
 
-    model = SASREC(99970, 2828, args.device, embedding_dims = 64, sequence_size=15, dropout_rate=0.2).to(args.device)
+    model = SASREC(99970, 2828, args.device, embedding_dims = args.embedding_dims, sequence_size=args.sequence_size, dropout_rate=0.2).to(args.device)
     state_dict = torch.load(args.state_dict_path, map_location=args.device)
 
     new_state_dict = OrderedDict()
