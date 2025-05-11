@@ -1,0 +1,77 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36" version="27.0.3">
+  <diagram name="Trang-1" id="-QAtJss3LlzNH7hhAh9V">
+    <mxGraphModel dx="1111" dy="491" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="k3DnVSzeOFythB2UlH75-1" value="Đăng nhập" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="170" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-3" value="Trang chủ" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="170" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-4" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="k3DnVSzeOFythB2UlH75-1" target="k3DnVSzeOFythB2UlH75-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="300" as="sourcePoint" />
+            <mxPoint x="450" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-5" value="Recommended Courses" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="220" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-6" value="All courses" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="415" y="285" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-7" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="k3DnVSzeOFythB2UlH75-3" target="k3DnVSzeOFythB2UlH75-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="640" y="270" as="sourcePoint" />
+            <mxPoint x="400" y="290" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="390" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-8" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="k3DnVSzeOFythB2UlH75-3" target="k3DnVSzeOFythB2UlH75-6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="230" y="180" as="sourcePoint" />
+            <mxPoint x="280" y="130" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="390" y="240" />
+              <mxPoint x="390" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-9" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="k3DnVSzeOFythB2UlH75-6" target="k3DnVSzeOFythB2UlH75-12">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="470" y="310" as="sourcePoint" />
+            <mxPoint x="610" y="365" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-11" value="Tìm kiếm" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="475" y="335" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-12" value="Search Result" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="425" y="365" width="90" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-13" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="k3DnVSzeOFythB2UlH75-5" target="k3DnVSzeOFythB2UlH75-15">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="470" y="310" as="sourcePoint" />
+            <mxPoint x="580" y="275" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-14" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="k3DnVSzeOFythB2UlH75-6" target="k3DnVSzeOFythB2UlH75-15">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="470" y="310" as="sourcePoint" />
+            <mxPoint x="580" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-15" value="Course Detail" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="255" width="90" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="k3DnVSzeOFythB2UlH75-18" value="Xem chi tiết" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="500" y="262.5" width="60" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
