@@ -66,13 +66,10 @@ app.get('/recommendations', async (req, res) => {
   }
 
   try {
-    // Lấy top 9 khóa học đề xuất
     const recommendationsQuery = `
       SELECT course_id, score 
       FROM recommendations 
-      WHERE user_id = ? 
-      ORDER BY score DESC 
-      LIMIT 9`;
+      WHERE user_id = ? `;
     const recommendationsResult = await client.execute(recommendationsQuery, [req.session.userId], { prepare: true });
 
     // Lấy thông tin chi tiết các khóa học đề xuất
