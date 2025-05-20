@@ -1,17 +1,15 @@
-function openTab(evt, tabName) {
-    const tabcontent = document.getElementsByClassName("tab-content");
-    for (let i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].classList.remove("active");
-    }
+function openTab(evt, tabId) {
+    const tabContents = document.querySelectorAll('.tabcontent, .tab-content');
+    tabContents.forEach(tab => tab.style.display = 'none');
 
-    const tablinks = document.getElementsByClassName("tab-btn");
-    for (let i = 0; i < tablinks.length; i++) {
-        tablinks[i].classList.remove("active");
-    }
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
 
-    document.getElementById(tabName).classList.add("active");
-    evt.currentTarget.classList.add("active");
+    document.getElementById(tabId).style.display = 'block';
+
+    evt.currentTarget.classList.add('active');
 }
+
 
 app.post('/enroll', async (req, res) => {
     if (!req.session.userId) {

@@ -42,12 +42,20 @@
                     </svg>
                     All Courses
                 </button>
-            </div>
+                <button class="tab-btn" onclick="openTab(event, 'takenCourses')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16v16H4z"></path>
+                        <path d="M4 9h16"></path>
+                        <path d="M9 4v5"></path>
+                    </svg>
+                    Courses Taken
+                </button>
+            </div>  
 
             <!-- Tab Content -->
-            <div id="recommendations" class="tab-content active">
+            <div id="recommendations" class="tab-content active" style="display: block;">
                 <div class="section-header">
-                    <h2>Top 9 Recommended Courses For You</h2>
+                    <h2>Top 10 Recommended Courses For You</h2>
                     <p>Based on your learning preferences and history</p>
                 </div>
                 
@@ -74,7 +82,7 @@
                 </div>
             </div>
             
-            <div id="allCourses" class="tabcontent">
+            <div id="allCourses" class="tabcontent" style="display: none;">
                 <div class="section-header">
                   <div class="search-container">
                     <h2>All Available Courses</h2>
@@ -112,6 +120,24 @@
                   <% }); %>
                 </div>
               </div>
+
+                <!-- Danh sách khóa học đã đăng kí -->
+                <div id="takenCourses" class="tabcontent" style="display: none;">
+                    <div class="section-header">
+                        <h2>Courses Taken</h2>
+                    </div>
+                    <div class="courses-grid">
+                    <% takenCourse.forEach(course => { %>
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h3><%= course.name_vn %></h3>
+                            </div>
+                            <p class="course-field"><%= course.field %></p>
+                            <p class="course-desc"><%= course.about_vn %></p>
+                        </div>
+                    <% }); %>
+                    </div>
+                </div>
         </main>
     </div>
 

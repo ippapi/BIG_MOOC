@@ -69,10 +69,9 @@ app.get('/recommendations', async (req, res) => {
     const recommendationsQuery = `
       SELECT course_id, score 
       FROM recommendations 
-      WHERE user_id = ? `;
+      WHERE user_id = ?`;
     const recommendationsResult = await client.execute(recommendationsQuery, [req.session.userId], { prepare: true });
 
-    // Lấy thông tin chi tiết các khóa học đề xuất
     const recommendedCourses = [];
     for (const row of recommendationsResult.rows) {
       const courseQuery = 'SELECT * FROM courses WHERE course_id = ?';
@@ -83,21 +82,34 @@ app.get('/recommendations', async (req, res) => {
       });
     }
 
-    // Lấy tất cả khóa học
     const allCoursesQuery = 'SELECT * FROM courses';
     const allCoursesResult = await client.execute(allCoursesQuery);
+
+    const takenCourseQuery = 'SELECT course_id FROM user_course WHERE user_id = ?';
+    const takenCourseResult = await client.execute(takenCourseQuery, [req.session.userId], { prepare: true });
+
+    const takenCourse = [];
+    for (const row of takenCourseResult.rows) {
+      const courseQuery = 'SELECT * FROM courses WHERE course_id = ?';
+      const courseResult = await client.execute(courseQuery, [row.course_id], { prepare: true });
+      if (courseResult.rows.length > 0) {
+        takenCourse.push(courseResult.rows[0]);
+      }
+    }
 
     res.render('recommendations', {
       userId: req.session.userId,
       recommendedCourses,
       allCourses: allCoursesResult.rows,
-      searchTerm: req.query.q || '' 
+      searchTerm: req.query.q || '',
+      takenCourse,
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
   }
 });
+
 
 app.get('/course/:id', async (req, res) => {
   if (!req.session.userId) {
