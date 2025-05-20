@@ -1,0 +1,52 @@
+services:
+    spark-master:
+        image: bitnami/spark:3.5.0
+        volumes:
+            - ./scripts:/opt/bitnami/spark/jobs
+            - ./data:/opt/bitnami/spark/data
+            - ./logs:/opt/bitnami/spark/logs
+        container_name: spark-master
+        ports:
+            - "8080:8080"
+            - "7077:7077"
+        environment:
+            - SPARK_LOCAL_IP=spark-master
+        networks:
+            - spark-network
+
+    spark-worker-1:
+        image: bitnami/spark:3.5.0
+        mem_limit: 8g
+        volumes:
+            - ./scripts:/opt/bitnami/spark/jobs
+            - ./data:/opt/bitnami/spark/data
+            - ./logs:/opt/bitnami/spark/logs
+        container_name: spark-worker-1
+        depends_on:
+            - spark-master
+        environment:
+            - SPARK_MASTER=spark://spark-master:7077
+            - SPARK_LOCAL_IP=spark-worker-1
+            - SPARK_MODE=worker
+        networks:
+            - spark-network
+
+    spark-worker-2:
+        image: bitnami/spark:3.5.0
+        mem_limit: 8g
+        volumes:
+            - ./scripts:/opt/bitnami/spark/jobs
+            - ./data:/opt/bitnami/spark/data
+            - ./logs:/opt/bitnami/spark/logs
+        container_name: spark-worker-2
+        depends_on:
+            - spark-master
+        environment:
+            - SPARK_MASTER=spark://spark-master:7077
+            - SPARK_LOCAL_IP=spark-worker-2
+            - SPARK_MODE=worker
+        networks:
+            - spark-network
+networks:
+    spark-network:
+        driver: bridge

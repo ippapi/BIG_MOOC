@@ -44,7 +44,7 @@ node_modules/
 *.so
 
 # Ignore any custom directory like logs, data, etc.
-logs/
+
 
 # Ignore all files in the /build directory
 /build/
