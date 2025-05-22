@@ -29,22 +29,33 @@ def init_schema():
     session.execute("DROP TABLE IF EXISTS user_course;")
     session.execute("DROP TABLE IF EXISTS users;")
     session.execute("DROP TABLE IF EXISTS courses;")
+    session.execute("DROP TABLE IF EXISTS teachers;")
+    session.execute("DROP TABLE IF EXISTS schools;")
+    session.execute("DROP TABLE IF EXISTS course_school;")
+    session.execute("DROP TABLE IF EXISTS course_teacher;")
+    session.execute("DROP TABLE IF EXISTS course_field;")
+    session.execute("DROP TABLE IF EXISTS concept_course;")
 
     # Create tables
     session.execute("""
-        CREATE TABLE IF NOT EXISTS courses (
-            course_id TEXT PRIMARY KEY,
-            name TEXT,
-            about TEXT
-        );
+    CREATE TABLE IF NOT EXISTS courses (
+        course_id text PRIMARY KEY,
+        name text,
+        field text,
+        prerequisites text,
+        about text,
+        name_vn text,
+        about_vn text
+    );
     """)
     session.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            user_id TEXT PRIMARY KEY,
-            name TEXT,
-            gender TEXT,
-            year_of_birth TEXT
-        );
+    CREATE TABLE IF NOT EXISTS users (
+        user_id TEXT PRIMARY KEY,
+        name TEXT,
+        gender TEXT,
+        year_of_birth TEXT,
+        school text
+    );
     """)
     session.execute("""
         CREATE TABLE IF NOT EXISTS user_course (
@@ -54,6 +65,54 @@ def init_schema():
             PRIMARY KEY ((user_id), course_id)
         );
     """)
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS teachers (
+        teacher_id text PRIMARY KEY,
+        name text,
+        name_en text,
+        about text,
+        job_title text,
+        org_name text
+    );
+    """)
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS schools (
+        school_id text PRIMARY KEY,
+        name text,
+        name_en text,
+        sign text,
+        about text,
+        motto text
+    );
+    """)
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS course_school (
+        course_id text,
+        school_id text,
+        PRIMARY KEY (course_id, school_id)
+    );
+    """)
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS course_teacher (
+        course_id text,
+        teacher_id text,
+        PRIMARY KEY (course_id, teacher_id)
+    );
+    """)
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS course_field (
+        course_id text PRIMARY KEY,
+        field text
+    );
+    """)
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS concept_course (
+        concept_id text,
+        course_id text,
+        PRIMARY KEY (concept_id, course_id)       
+    );
+    """)
+
     print("Keyspace and tables dropped and recreated.")
 
 def load_users():
@@ -61,13 +120,13 @@ def load_users():
     batch = BatchStatement()
     count = 0
 
-    with open('./data/user.csv') as f:
+    with open('./data/user.csv', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
             batch.add("""
-                INSERT INTO users (user_id, name, gender, year_of_birth)
-                VALUES (%s, %s, %s, %s)
-            """, (row['id'], row['name'], row['gender'], row['year_of_birth']))
+                INSERT INTO users (user_id, name, gender, year_of_birth, school)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (row['id'], row['name_vn'], row['gender'], row['year_of_birth'], row['school']))
 
             count += 1
 
@@ -83,23 +142,22 @@ def load_courses():
     batch = BatchStatement()
     count = 0
 
-    with open('./data/course.csv') as f:
+    with open('./data/course.csv', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
             batch.add("""
-                INSERT INTO courses (course_id, name, about)
-                VALUES (%s, %s, %s)
-            """, (row['id'], row['name'], row['about']))
+                INSERT INTO courses (course_id, name, field, about, name_vn, about_vn)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (row['id'], row['name'], row['field'], row['about'], row['name_vn'], row['about_vn'])) 
             count += 1
 
             if count % batch_size == 0:
                 session.execute(batch)
                 batch = BatchStatement()
-                
+    
     if len(batch) > 0:
         session.execute(batch)
 
-# Function to batch insert enrollments
 def load_enrollments():
     batch_size = 50
     batch = BatchStatement()
@@ -120,7 +178,173 @@ def load_enrollments():
     if len(batch) > 0:
         session.execute(batch)
 
+def load_teachers():
+    batch_size = 100
+    batch = BatchStatement()
+    count = 0
+
+    with open('./data/teacher.json', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue  # bỏ qua dòng trống
+
+            try:
+                record = json.loads(line)
+                teacher_id = record.get('id')
+                name = record.get('name')
+                name_en = record.get('name_en')
+                about = record.get('about')
+                job_title = record.get('job_title')
+                org_name = record.get('org_name')
+                batch.add("""
+                    INSERT INTO teachers (teacher_id, name, name_en, about, job_title, org_name)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (teacher_id, name, name_en, about, job_title, org_name)) 
+                count += 1
+
+                if count % batch_size == 0:
+                    session.execute(batch)
+                    batch.clear()
+            except json.JSONDecodeError as e:
+                print(f"Lỗi JSON ở dòng: {line}")
+                continue
+
+    if len(batch) > 0:
+        session.execute(batch)
+
+def load_schools():
+    batch_size = 100
+    batch = BatchStatement()
+    count = 0
+
+    with open('./data/school.json', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue  # bỏ qua dòng trống
+
+            try:
+                record = json.loads(line)
+                school_id = record.get('id')
+                name = record.get('name')
+                name_en = record.get('name_en')
+                sign = record.get('sign')
+                about = record.get('about')
+                motto = record.get('motto')
+                batch.add("""
+                    INSERT INTO schools (school_id, name, name_en, sign, about, motto)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (school_id, name, name_en, sign, about, motto)) 
+                count += 1
+
+                if count % batch_size == 0:
+                    session.execute(batch)
+                    batch.clear()
+            except json.JSONDecodeError as e:
+                print(f"Lỗi JSON ở dòng: {line}")
+                continue
+
+    if len(batch) > 0:
+        session.execute(batch)
+
+def load_course_school(): 
+    batch_size = 100
+    batch = BatchStatement()
+    count = 0
+    with open('./data/course-school.txt', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter='\t')
+        for row in reader:
+            batch.add("""
+                INSERT INTO course_school (course_id, school_id)
+                VALUES (%s, %s)
+            """, (row[0], row[1])) 
+            count += 1
+
+            if count % batch_size == 0:
+                session.execute(batch)
+                batch = BatchStatement()
+    
+    if len(batch) > 0:
+        session.execute(batch)
+
+def load_course_teacher(): 
+    batch_size = 100
+    batch = BatchStatement()
+    count = 0
+    with open('./data/course-teacher.txt', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter='\t')
+        for row in reader:
+            batch.add("""
+                INSERT INTO course_teacher (course_id, teacher_id)
+                VALUES (%s, %s)
+            """, (row[0], row[1])) 
+            count += 1
+
+            if count % batch_size == 0:
+                session.execute(batch)
+                batch = BatchStatement()
+    
+    if len(batch) > 0:
+        session.execute(batch)
+
+def load_course_field():
+    batch_size = 100
+    batch = BatchStatement()
+    count = 0
+    with open('./data/course-field.txt', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter='\t')
+        for row in reader:
+            batch.add("""
+                INSERT INTO course_field (course_id, field)
+                VALUES (%s, %s)
+            """, (row[0], row[1])) 
+            count += 1
+
+            if count % batch_size == 0:
+                session.execute(batch)
+                batch = BatchStatement()
+    
+    if len(batch) > 0:
+        session.execute(batch)
+
+def load_concept_course():
+
+    insert_stmt = session.prepare("""
+        INSERT INTO concept_course (concept_id, course_id)
+        VALUES (?, ?)
+    """)
+
+    batch_size = 1000
+    batch = BatchStatement()
+    count = 0
+
+    with open('./data/concept-course.txt', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter='\t')
+        for row in reader:
+            batch.add("""
+                INSERT INTO course_field (concept_id, course_id)
+                VALUES (%s, %s)
+            """, (row[0], row[1]))
+            count += 1
+
+            if count % batch_size == 0:
+                session.execute(batch)
+                batch = BatchStatement()
+
+    if count % batch_size != 0:
+        session.execute(batch)
+        
+
+
 init_schema()
 load_users()
 load_courses()
 load_enrollments()
+load_course_school()
+load_course_teacher()
+load_course_field()
+load_course_field()
+load_concept_course()
+load_teachers()
+load_schools()

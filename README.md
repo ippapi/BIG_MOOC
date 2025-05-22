@@ -18,7 +18,7 @@ This project is built to handle **real-time data ingestion**, **ML model trainin
 		 - 	kafka_producer (Listen to client, write data to broker)
 		 - kafka_consumer (Listen to broker and tranfer data to colab notebook)
 		 - readme.md: info about consumer and producer
-	 - 📁 database_node (cloud Cassandra data uploader)
+	 - 📁 database_initiator (cloud Cassandra data uploader)
 		 - 📁 data (table's data in csv format)
 			 - user.csv (user table)
 			 - course.csv (course table)
@@ -35,5 +35,11 @@ This project is built to handle **real-time data ingestion**, **ML model trainin
 		 - views (contains ejs file build web ui/ux + interact logic)
 		 - app.js (main app)
 	 - 📁 notebooks (notebook to run model on colab)
+	 - 📁 batch_process 
+		 - 📁 BERT4Rec (contains files to train BERT4Rec model)
+		 - 📁 FM (contains files to train FM model)
+		 - 📁 notebooks (contains notebooks to run model)
+		 - load_recommendations.py (load recommendations predicted by model to database)
+		 - recommendations.csv (contains)
 	 - README.md: It's me :))
 ---
