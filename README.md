@@ -34,6 +34,8 @@ This project is built to handle **real-time data ingestion**, **ML model trainin
 		 - public (contains web media)
 		 - views (contains ejs file build web ui/ux + interact logic)
 		 - app.js (main app)
-	 - 📁 notebooks (notebook to run model on colab)
+	 - 📁 notebooks
+	  	 - data processing: for preprocessing, cleaning, and mapping input data before modeling or analysis.
+		 - STREAMING_BIG_MOOC: notebook to run model on colab
 	 - README.md: It's me :))
 ---
