@@ -42,21 +42,29 @@ Các thành viên trong nhóm bao gồm:
 **Bước 1:** Clone repo về máy tính của bạn bằng cách sử dụng git command line hoặc download zip file.
 
 ```bash
-git clone https://github.com/ThanhDanhDo/FashionShop.git
+git clone https://github.com/ippapi/BIG_MOOC.git
 ```
 
 **Bước 2:** Chạy producer docker images
-
 ```bash
-cd backend
+docker-compose up --build producer
 ```
+
 **Bước 3:** Khởi tạo fastapi app + ngrok trên colab
+```bash
+docker-compose up --build consumer
+```
 
 **Bước 4:** Cập nhật ngrok link trong thư mục producer main.py và khởi chạy producer docker images
 
 **Bước 5:** Khởi tạo node.js app.
 
 **Bước 6:** Chạy spark để nhận và xử lý dữ liệu streaming.
+
+**Bước 7:** Mở cổng kết nối ngrok nhận dữ liệu trả về.
+```Bash
+ngrok http --url=careful-formally-locust.ngrok-free.app 8000
+```
 
 ## **Project file structure**
  - BIG_MOOC
