@@ -51,11 +51,11 @@ docker-compose up --build producer
 ```
 
 **Bước 3:** Khởi tạo fastapi app + ngrok trên colab
+
+**Bước 4:** Cập nhật ngrok link trong thư mục producer main.py và khởi chạy producer docker images
 ```bash
 docker-compose up --build consumer
 ```
-
-**Bước 4:** Cập nhật ngrok link trong thư mục producer main.py và khởi chạy producer docker images
 
 **Bước 5:** Khởi tạo node.js app.
 
